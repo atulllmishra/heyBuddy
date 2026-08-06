@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>heyBuddy AI - Next-Gen AI Video Learning Platform</title>
+  <meta name="description" content="Transform any question or textbook topic into an interactive AI-generated educational video with dynamic diagrams, voice narration, quizzes, and instant doubt solver." />
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  
+  <!-- Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body class="dark-theme">
+
+  <!-- Background Decorative Ambient Lights -->
+  <div class="ambient-glow glow-1"></div>
+  <div class="ambient-glow glow-2"></div>
+  <div class="ambient-glow glow-3"></div>
+
+  <!-- Navigation Header -->
+  <header class="app-header">
+    <div class="header-container">
+      <div class="logo-group">
+        <div class="logo-icon">
+          <i class="fa-solid fa-graduation-cap"></i>
+          <span class="logo-sparkle"><i class="fa-solid fa-wand-magic-sparkles"></i></span>
+        </div>
+        <div class="logo-text">
+          <span class="brand-name">hey<span class="brand-highlight">Buddy</span></span>
+          <span class="brand-badge">AI EDTECH</span>
+        </div>
+      </div>
+
+      <nav class="header-nav">
+        <button class="nav-btn active" id="navStudioBtn"><i class="fa-solid fa-clapperboard"></i> AI Video Studio</button>
+        <button class="nav-btn" id="navLibraryBtn"><i class="fa-solid fa-film"></i> Library</button>
+        <button class="nav-btn" id="navSettingsBtn"><i class="fa-solid fa-sliders"></i> AI Engine</button>
+      </nav>
+
+      <div class="header-actions">
+        <button class="icon-btn" id="apiKeyModalBtn" title="Gemini API Settings">
+          <i class="fa-solid fa-key"></i>
+          <span class="status-dot green" id="apiStatusDot"></span>
+        </button>
+        <div class="user-pill">
+          <span class="avatar-sm">🎓</span>
+          <span class="user-name">Student Portal</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="main-content">
+
+    <!-- HERO PROMPT STUDIO SECTION -->
+    <section class="prompt-studio-card glass-panel" id="studioSection">
+      <div class="studio-header">
+        <div class="studio-badge"><i class="fa-solid fa-sparkles"></i> Instant AI Video Generation</div>
+        <h1 class="studio-title">What do you want to learn today?</h1>
+        <p class="studio-subtitle">Ask any question or topic from school, college, or competitive exams. heyBuddy generates a personalized **AI Video** with animated diagrams, narration, and step-by-step visuals.</p>
+      </div>
+
+      <form id="generateForm" class="prompt-form">
+        <div class="input-wrapper">
+          <i class="fa-solid fa-magnifying-glass search-icon"></i>
+          <input type="text" id="topicInput" placeholder="e.g. How does Photosynthesis work? or Explain Newton's 2nd Law F=ma" required autocomplete="off" />
+          <button type="submit" class="btn-generate" id="generateBtn">
+            <span class="btn-text"><i class="fa-solid fa-circle-play"></i> Generate AI Video</span>
+            <span class="btn-loader spinner-hidden"><i class="fa-solid fa-circle-notch fa-spin"></i> Generating Script...</span>
+          </button>
+        </div>
+
+        <!-- Customization Controls -->
+        <div class="studio-controls">
+          <div class="control-group">
+            <label for="gradeSelect"><i class="fa-solid fa-graduation-cap"></i> Grade Level:</label>
+            <select id="gradeSelect" class="custom-select">
+              <option value="High School">High School (Grade 9-12)</option>
+              <option value="Middle School">Middle School (Grade 6-8)</option>
+              <option value="College">College / University</option>
+              <option value="Advanced / Exam">Competitive Exam Prep</option>
+            </select>
+          </div>
+
+          <div class="control-group">
+            <label for="styleSelect"><i class="fa-solid fa-palette"></i> Learning Style:</label>
+            <select id="styleSelect" class="custom-select">
+              <option value="Visual">Visual Diagrams & Animations</option>
+              <option value="Step-by-Step">Step-by-Step Mathematical/Logical</option>
+              <option value="Storytelling">Storytelling & Analogies</option>
+              <option value="Fast Recap">Exam Revision Fast Recap</option>
+            </select>
+          </div>
+
+          <div class="control-group">
+            <label for="voiceSelect"><i class="fa-solid fa-volume-high"></i> AI Voice:</label>
+            <select id="voiceSelect" class="custom-select">
+              <option value="default">Default Neural Voice</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Preset Quick Badges -->
+        <div class="preset-topics">
+          <span class="preset-label">Trending Topics:</span>
+          <button type="button" class="topic-chip" data-topic="Photosynthesis & Light Reactions"><i class="fa-solid fa-seedling"></i> Photosynthesis</button>
+          <button type="button" class="topic-chip" data-topic="Newton's Three Laws of Motion"><i class="fa-solid fa-atom"></i> Newton's Laws</button>
+          <button type="button" class="topic-chip" data-topic="Quantum Entanglement & Superposition"><i class="fa-solid fa-bolt"></i> Quantum Physics</button>
+          <button type="button" class="topic-chip" data-topic="Calculus: Derivatives & Rate of Change"><i class="fa-solid fa-calculator"></i> Derivatives</button>
+          <button type="button" class="topic-chip" data-topic="Python Data Structures: Arrays vs Linked Lists"><i class="fa-solid fa-code"></i> Data Structures</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- WORKSPACE SECTION (VIDEO PLAYER + TABS) -->
+    <section class="workspace-section" id="workspaceSection">
+      
+      <!-- MAIN VIDEO PLAYER COLUMN -->
+      <div class="video-player-container glass-panel">
+        
+        <!-- Video Header Info -->
+        <div class="video-meta-bar">
+          <div class="meta-left">
+            <span class="live-pill"><i class="fa-solid fa-satellite-dish fa-beat"></i> AI GENERATED LESSON</span>
+            <h2 id="videoTitleDisplay" class="video-title-text">Photosynthesis & Light-Dependent Reactions</h2>
+          </div>
+          <div class="meta-right">
+            <button class="action-btn" id="exportVideoBtn" title="Export / Download Canvas Video Recording">
+              <i class="fa-solid fa-download"></i> Download Video
+            </button>
+            <button class="action-btn" id="fullscreenBtn" title="Toggle Fullscreen">
+              <i class="fa-solid fa-expand"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- CANVAS VIDEO STAGE -->
+        <div class="canvas-stage-wrapper" id="canvasWrapper">
+          <canvas id="videoCanvas" width="960" height="540"></canvas>
+          
+          <!-- Animated Subtitle Banner -->
+          <div class="subtitle-overlay" id="subtitleOverlay">
+            <span class="subtitle-badge"><i class="fa-solid fa-closed-captioning"></i> AI NARRATION</span>
+            <p id="subtitleText" class="subtitle-text">Welcome to heyBuddy AI Video Learning!</p>
+          </div>
+
+          <!-- Presenter Avatar Overlay -->
+          <div class="avatar-presenter-overlay" id="avatarOverlay">
+            <div class="avatar-ring">
+              <div class="avatar-face" id="avatarFace">🤖</div>
+              <div class="speech-waves" id="speechWaves">
+                <span></span><span></span><span></span>
+              </div>
+            </div>
+            <div class="avatar-nametag">
+              <span class="avatar-title">Buddy AI Tutor</span>
+              <span class="avatar-status" id="avatarStatus">Explaining Scene 1</span>
+            </div>
+          </div>
+
+          <!-- Video Loading Overlay -->
+          <div class="video-loading-screen hidden" id="videoLoader">
+            <div class="loader-content">
+              <div class="pulse-orbit">
+                <i class="fa-solid fa-brain fa-3x"></i>
+              </div>
+              <h3>Generating AI Video Scenes...</h3>
+              <p id="loaderStep">Synthesizing dynamic vector diagrams & audio narration...</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- VIDEO TIMELINE & CONTROL BAR -->
+        <div class="video-control-bar">
+          <div class="timeline-slider-wrapper">
+            <input type="range" id="timelineSlider" min="0" max="100" value="0" step="0.1" />
+            <div class="time-readout">
+              <span id="currentTimeText">0:00</span> / <span id="totalTimeText">0:45</span>
+            </div>
+          </div>
+
+          <div class="controls-toolbar">
+            <div class="left-controls">
+              <button class="ctrl-btn" id="playPauseBtn" title="Play / Pause">
+                <i class="fa-solid fa-play" id="playIcon"></i>
+              </button>
+              <button class="ctrl-btn" id="prevSceneBtn" title="Previous Scene">
+                <i class="fa-solid fa-backward-step"></i>
+              </button>
+              <button class="ctrl-btn" id="nextSceneBtn" title="Next Scene">
+                <i class="fa-solid fa-forward-step"></i>
+              </button>
+              <div class="volume-group">
+                <button class="ctrl-btn" id="muteBtn" title="Mute / Unmute"><i class="fa-solid fa-volume-high" id="volumeIcon"></i></button>
+                <input type="range" id="volumeSlider" min="0" max="1" step="0.05" value="1" />
+              </div>
+            </div>
+
+            <div class="right-controls">
+              <div class="speed-selector">
+                <button class="speed-btn active" data-speed="1">1x</button>
+                <button class="speed-btn" data-speed="1.25">1.25x</button>
+                <button class="speed-btn" data-speed="1.5">1.5x</button>
+                <button class="speed-btn" data-speed="2">2x</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- INTERACTIVE SIDE TABS COLUMN -->
+      <div class="interactive-panel glass-panel">
+        
+        <!-- Tab Navigation -->
+        <div class="tab-header">
+          <button class="tab-btn active" data-tab="tabScenes"><i class="fa-solid fa-layer-group"></i> Scenes</button>
+          <button class="tab-btn" data-tab="tabQuiz"><i class="fa-solid fa-circle-question"></i> Quiz</button>
+          <button class="tab-btn" data-tab="tabNotes"><i class="fa-solid fa-book-bookmark"></i> Notes</button>
+          <button class="tab-btn" data-tab="tabChat"><i class="fa-solid fa-comments"></i> Ask AI</button>
+        </div>
+
+        <!-- Tab 1: Scene Timeline List -->
+        <div class="tab-content active" id="tabScenes">
+          <div class="scene-list-header">
+            <h3>Lesson Breakdown</h3>
+            <span class="scene-count-badge" id="sceneCountBadge">4 Scenes</span>
+          </div>
+          <div class="scene-cards-scroll" id="sceneCardsList">
+            <!-- Scene cards dynamically injected -->
+          </div>
+        </div>
+
+        <!-- Tab 2: Quiz Master -->
+        <div class="tab-content" id="tabQuiz">
+          <div class="quiz-header">
+            <h3>Test Your Knowledge</h3>
+            <span class="score-badge" id="scoreBadge">Score: 0 / 0</span>
+          </div>
+          <div id="quizContainer" class="quiz-wrapper">
+            <!-- Quiz questions injected dynamically -->
+          </div>
+        </div>
+
+        <!-- Tab 3: Study Notes & Flashcards -->
+        <div class="tab-content" id="tabNotes">
+          <div class="notes-header">
+            <h3>Smart Summary Notes</h3>
+            <button class="btn-sm" id="downloadNotesBtn"><i class="fa-solid fa-file-arrow-down"></i> Export Notes</button>
+          </div>
+          <div id="notesContainer" class="notes-wrapper">
+            <!-- Notes injected dynamically -->
+          </div>
+        </div>
+
+        <!-- Tab 4: Ask heyBuddy (Doubt Solver AI) -->
+        <div class="tab-content" id="tabChat">
+          <div class="chat-header">
+            <div class="chat-tutor-info">
+              <span class="tutor-avatar">🤖</span>
+              <div>
+                <h4>Ask heyBuddy AI</h4>
+                <p>Have a doubt about this video scene?</p>
+              </div>
+            </div>
+          </div>
+          <div class="chat-messages-scroll" id="chatMessages">
+            <div class="chat-bubble ai">
+              Hello! 👋 I'm your AI tutor. If you have any questions about this video or need a formula clarified, just ask me here!
+            </div>
+          </div>
+          <form class="chat-input-box" id="chatForm">
+            <input type="text" id="chatInput" placeholder="Ask a doubt about this scene..." required />
+            <button type="submit" class="btn-send"><i class="fa-solid fa-paper-plane"></i></button>
+          </form>
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- COMMUNITY & SAMPLE TOPICS LIBRARY -->
+    <section class="library-section glass-panel hidden" id="librarySection">
+      <div class="section-title-row">
+        <h2><i class="fa-solid fa-compass"></i> Featured AI Video Courses</h2>
+        <p>Explore instant AI-generated video lectures across subjects.</p>
+      </div>
+      <div class="library-grid" id="libraryGrid">
+        <!-- Injected dynamically -->
+      </div>
+    </section>
+
+  </main>
+
+  <!-- GEMINI API KEY SETTINGS MODAL -->
+  <div class="modal-backdrop hidden" id="apiModal">
+    <div class="modal-card glass-panel">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-key"></i> Gemini AI Configuration</h3>
+        <button class="modal-close-btn" id="closeModalBtn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p>heyBuddy includes a rich built-in **procedural AI video engine** that generates videos for hundreds of topics offline. To generate custom tailored video scripts for any rare question, enter your free **Google Gemini API Key** below:</p>
+        <div class="form-group">
+          <label for="apiKeyInput">Google Gemini API Key:</label>
+          <input type="password" id="apiKeyInput" placeholder="AIzaSy..." class="modal-input" />
+        </div>
+        <div class="key-status-box" id="keyStatusBox">
+          <i class="fa-solid fa-circle-check"></i> System using Built-In Procedural AI Engine + Gemini Fallback.
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" id="saveKeyBtn">Save API Key</button>
+        <button class="btn-primary" id="clearKeyBtn">Reset Default</button>
+      </div>
+    </div>
+  </div>
+
+  <footer class="app-footer">
+    <div class="footer-container">
+      <p>© 2026 heyBuddy AI EdTech Platform. Built for futuristic interactive AI video learning.</p>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
