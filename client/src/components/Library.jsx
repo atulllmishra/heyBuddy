@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
+import { API_BASE_URL } from '../config';
 
 export default function Library({ onSelectTopic }) {
   const [topics, setTopics] = useState([]);
 
   useEffect(() => {
-    fetch('/api/topics/sample')
+    fetch(`${API_BASE_URL}/api/topics/sample`)
       .then(res => res.json())
       .then(data => setTopics(data))
       .catch(err => console.error('Failed to load courses', err));
