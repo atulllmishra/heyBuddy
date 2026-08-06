@@ -8,7 +8,10 @@ const PORT = process.env.PORT || 3000;
 
 // Enable CORS for Vercel Frontend & Localhost
 app.use(cors({
-  origin: process.env.CLIENT_ORIGIN || '*',
+  origin: (origin, callback) => {
+    // Allow any origin or non-browser request
+    return callback(null, true);
+  },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
