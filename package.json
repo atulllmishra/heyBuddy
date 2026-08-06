@@ -2,7 +2,6 @@
   "name": "heybuddy-workspace",
   "version": "1.0.0",
   "description": "heyBuddy AI EdTech Platform - MERN & React (Vite)",
-  "main": "server/index.js",
   "scripts": {
     "start": "node server/index.js",
     "server": "node server/index.js",
