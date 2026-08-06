@@ -1,7 +1,16 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import AIAvatarPresenter from './AIAvatarPresenter';
 
-export default function VideoPlayer({ videoData, activeSceneIndex, sceneProgress }) {
+export default function VideoPlayer({
+  videoData,
+  activeSceneIndex,
+  sceneProgress,
+  isPlaying,
+  currentAvatarId = 'maya',
+  onSelectAvatar
+}) {
   const canvasRef = useRef(null);
+  const [avatarMode, setAvatarMode] = useState('pip'); // 'pip' | 'split' | 'off'
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -18,7 +27,7 @@ export default function VideoPlayer({ videoData, activeSceneIndex, sceneProgress
     ctx.fillStyle = grad;
     ctx.fillRect(0, 0, 960, 540);
 
-    // 2. Subtle Grid Lines (Humanise Monochrome Style)
+    // 2. Subtle Grid Lines (Technical Monochrome Style)
     ctx.strokeStyle = "rgba(255, 255, 255, 0.05)";
     ctx.lineWidth = 1;
     for (let x = 0; x < 960; x += 40) {
@@ -46,7 +55,6 @@ export default function VideoPlayer({ videoData, activeSceneIndex, sceneProgress
 
     // 4. Render Scene Visual Elements
     const elements = canvasData.elements || [];
-    const time = Date.now() * 0.003;
 
     elements.forEach((el) => {
       ctx.save();
@@ -131,15 +139,61 @@ export default function VideoPlayer({ videoData, activeSceneIndex, sceneProgress
   const currentScene = videoData.scenes[activeSceneIndex] || {};
 
   return (
-    <div className="stage-wrapper">
-      <canvas ref={canvasRef} width="960" height="540" />
-      <div className="avatar-badge">
-        <span>🤖</span>
-        <span>Buddy AI Presenter (Scene {activeSceneIndex + 1} of {videoData.scenes.length})</span>
+    <div className={`player-layout ${avatarMode === 'split' ? 'split-layout' : ''}`}>
+      <div className="stage-wrapper">
+        <canvas ref={canvasRef} width="960" height="540" />
+
+        <div className="avatar-controls-top">
+          <button
+            className={`mode-btn ${avatarMode === 'pip' ? 'active' : ''}`}
+            onClick={() => setAvatarMode('pip')}
+            title="Picture in Picture Avatar"
+          >
+            PIP Avatar
+          </button>
+          <button
+            className={`mode-btn ${avatarMode === 'split' ? 'active' : ''}`}
+            onClick={() => setAvatarMode('split')}
+            title="Side by Side Split Mode"
+          >
+            Split View
+          </button>
+          <button
+            className={`mode-btn ${avatarMode === 'off' ? 'active' : ''}`}
+            onClick={() => setAvatarMode('off')}
+            title="Hide Avatar"
+          >
+            Hide Avatar
+          </button>
+        </div>
+
+        {avatarMode === 'pip' && (
+          <div className="pip-avatar-wrapper">
+            <AIAvatarPresenter
+              isPlaying={isPlaying}
+              currentAvatarId={currentAvatarId}
+              onSelectAvatar={onSelectAvatar}
+              compact={true}
+            />
+          </div>
+        )}
+
+        <div className="subtitle-box">
+          <i className="fa-solid fa-closed-captioning" style={{ marginRight: '8px', opacity: 0.7 }}></i>
+          {currentScene.narration || 'Loading video narration...'}
+        </div>
       </div>
-      <div className="subtitle-box">
-        {currentScene.narration || 'Loading video narration...'}
-      </div>
+
+      {avatarMode === 'split' && (
+        <div className="split-avatar-panel">
+          <AIAvatarPresenter
+            isPlaying={isPlaying}
+            currentAvatarId={currentAvatarId}
+            onSelectAvatar={onSelectAvatar}
+            compact={false}
+          />
+        </div>
+      )}
     </div>
   );
 }

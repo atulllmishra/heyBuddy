@@ -1,5 +1,5 @@
 /**
- * AI Orchestrator Service - Prompt Chains, Teaching Methodologies, Translations & Procedural Engine
+ * AI Orchestrator Service - Prompt Chains, Teaching Methodologies, Translations, Avatar Data & RAG Context
  */
 
 const METHODOLOGIES = {
@@ -170,7 +170,7 @@ async function generateScriptAndVisuals({ topic, gradeLevel, methodology = 'Feyn
           id: 2,
           title: "System Mechanics & Flow",
           duration: 10,
-          narration: `Examining the inner workings: how variables interact to drive the primary outcome.`,
+          narration: `Examining the inner workings: how variables interact to drive the primary outcome in ${cleanTopic}.`,
           visualType: "process_flow",
           canvasData: {
             bgGradient: styleConfig.bgGradient,
@@ -185,15 +185,15 @@ async function generateScriptAndVisuals({ topic, gradeLevel, methodology = 'Feyn
         },
         {
           id: 3,
-          title: "Deep Dive & Formula Derivation",
+          title: "Deep Dive & Core Principles",
           duration: 10,
-          narration: `Here is the mathematical and logical representation powering ${cleanTopic}.`,
+          narration: `Here is the mathematical and analytical representation powering ${cleanTopic}.`,
           visualType: "formula_demo",
           canvasData: {
             bgGradient: styleConfig.bgGradient,
             mainTitle: "Mathematical Derivation",
             elements: [
-              { type: "formula_banner", text: `f(${cleanTopic.slice(0, 6)}) = Σ(Inputs · Weights)`, x: 200, y: 230, color: styleConfig.primaryColor }
+              { type: "formula_banner", text: `f(${cleanTopic.slice(0, 8)}) = Σ(Inputs · Weights)`, x: 200, y: 230, color: styleConfig.primaryColor }
             ]
           },
           bullets: ["Analytical breakdown", "Key variables defined", "Exam tips & pitfalls"]
@@ -235,7 +235,7 @@ async function generateScriptAndVisuals({ topic, gradeLevel, methodology = 'Feyn
     }
   });
 
-  // If Gemini API Key is provided, call LLM to enhance script with requested methodology and language
+  // Call Gemini API if key is available
   const effectiveKey = apiKey || process.env.GEMINI_API_KEY;
   if (effectiveKey) {
     try {
@@ -302,7 +302,6 @@ Respond ONLY with valid JSON conforming to this schema:
         textRes = textRes.replace(/```json/g, '').replace(/```/g, '').trim();
         const parsed = JSON.parse(textRes);
 
-        // Merge LLM narrations & translations into base visual canvas scenes
         if (parsed.scenes && parsed.scenes.length === baseData.scenes.length) {
           parsed.scenes.forEach((s, idx) => {
             baseData.scenes[idx].title = s.title;
@@ -312,9 +311,6 @@ Respond ONLY with valid JSON conforming to this schema:
         }
         if (parsed.quiz) baseData.quiz = parsed.quiz;
         if (parsed.notes) baseData.notes = parsed.notes;
-        baseData.methodology = methodology;
-        baseData.language = language;
-        return baseData;
       }
     } catch (e) {
       console.warn('[aiOrchestrator] Gemini call failed, returning procedural engine result:', e.message);
@@ -323,11 +319,68 @@ Respond ONLY with valid JSON conforming to this schema:
 
   baseData.methodology = methodology;
   baseData.language = language;
+  baseData.style = style;
   return baseData;
+}
+
+/**
+ * On-the-Fly Live Script Translation for current Video
+ */
+async function translateScriptOnTheFly({ videoData, targetLanguage, apiKey }) {
+  if (!videoData) return null;
+  const copy = JSON.parse(JSON.stringify(videoData));
+  copy.language = targetLanguage;
+
+  const effectiveKey = apiKey || process.env.GEMINI_API_KEY;
+  if (effectiveKey) {
+    try {
+      const prompt = `Translate the narrations and bullets of this educational script to ${targetLanguage}.
+Respond ONLY with JSON:
+{
+  "scenes": [
+    { "id": 1, "title": "Translated Title", "narration": "Translated Narration", "bullets": ["Translated Bullet 1"] },
+    { "id": 2, "title": "Translated Title", "narration": "Translated Narration", "bullets": ["Translated Bullet 1"] },
+    { "id": 3, "title": "Translated Title", "narration": "Translated Narration", "bullets": ["Translated Bullet 1"] },
+    { "id": 4, "title": "Translated Title", "narration": "Translated Narration", "bullets": ["Translated Bullet 1"] }
+  ]
+}
+Original scenes narrations: ${JSON.stringify(videoData.scenes.map(s => ({ title: s.title, narration: s.narration, bullets: s.bullets })))}`;
+
+      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${effectiveKey}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        let textRes = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+        textRes = textRes.replace(/```json/g, '').replace(/```/g, '').trim();
+        const parsed = JSON.parse(textRes);
+        if (parsed.scenes && parsed.scenes.length === copy.scenes.length) {
+          parsed.scenes.forEach((s, idx) => {
+            copy.scenes[idx].title = s.title;
+            copy.scenes[idx].narration = s.narration;
+            copy.scenes[idx].bullets = s.bullets;
+          });
+          return copy;
+        }
+      }
+    } catch (err) {
+      console.warn('[aiOrchestrator] On-the-fly translation error:', err.message);
+    }
+  }
+
+  // Fallback translation tag
+  copy.scenes.forEach(s => {
+    s.narration = `[${targetLanguage}] ` + s.narration;
+  });
+  return copy;
 }
 
 module.exports = {
   generateScriptAndVisuals,
+  translateScriptOnTheFly,
   METHODOLOGIES,
   LANGUAGES,
   STYLES

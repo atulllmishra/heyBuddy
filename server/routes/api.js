@@ -5,6 +5,10 @@ const chatController = require('../controllers/chatController');
 
 router.post('/video/generate', videoController.generateVideo);
 router.get('/video/options', videoController.getOptions);
+router.post('/video/render-async', videoController.startAsyncJob);
+router.get('/video/job/:jobId', videoController.getJobStatus);
+router.post('/video/translate', videoController.translateVideo);
+
 router.post('/chat/doubt', chatController.handleDoubtChat);
 
 router.get('/topics/sample', (req, res) => {

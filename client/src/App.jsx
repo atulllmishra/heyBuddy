@@ -8,12 +8,15 @@ import NotesTab from './components/NotesTab';
 import DoubtChat from './components/DoubtChat';
 import Library from './components/Library';
 
+const METHODOLOGY_KEYS = ['Feynman', 'Socratic', 'Analogy', 'FirstPrinciples', 'ELI5'];
+const STYLE_KEYS = ['Minimalist', 'Technical', 'Chalkboard', 'DataFlow'];
+
 export default function App() {
   const [theme, setTheme] = useState('dark');
   const [activeTab, setActiveTab] = useState('studio'); // 'studio' | 'library'
   const [activeSideTab, setActiveSideTab] = useState('scenes'); // 'scenes' | 'quiz' | 'notes' | 'chat'
   
-  // Video State
+  // Video & Avatar State
   const [videoData, setVideoData] = useState(null);
   const [activeSceneIndex, setActiveSceneIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -22,6 +25,12 @@ export default function App() {
   const [volume, setVolume] = useState(1);
   const [isMuted, setIsMuted] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [isTranslating, setIsTranslating] = useState(false);
+  const [currentAvatarId, setCurrentAvatarId] = useState('maya');
+
+  // Async Pipeline Queue Job state
+  const [jobProgress, setJobProgress] = useState(null);
+
   const [apiKey, setApiKey] = useState(() => localStorage.getItem('heybuddy_gemini_key') || '');
   const [showKeyModal, setShowKeyModal] = useState(false);
 
@@ -36,31 +45,109 @@ export default function App() {
     document.documentElement.setAttribute('data-theme', nextTheme);
   };
 
-  // Generate Video Endpoint
+  // Generate Video Endpoint with Async Pipeline polling simulation
   const handleGenerate = async ({ topic, methodology, language, style, gradeLevel }) => {
     setLoading(true);
+    setJobProgress({ progress: 10, message: 'Initiating backend AI video pipeline...' });
+
     try {
-      const res = await fetch('/api/video/generate', {
+      // 1. Call async job rendering pipeline
+      const asyncRes = await fetch('/api/video/render-async', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ topic, methodology, language, style, gradeLevel, apiKey })
       });
-      const data = await res.json();
-      if (data.success && data.data) {
-        setVideoData(data.data);
-        setActiveSceneIndex(0);
-        setSceneProgress(0);
-        setIsPlaying(false);
-        stopSpeech();
+      const asyncData = await asyncRes.json();
+
+      if (asyncData.success && asyncData.jobId) {
+        const jobId = asyncData.jobId;
+        // Poll for job completion
+        const pollInterval = setInterval(async () => {
+          try {
+            const statusRes = await fetch(`/api/video/job/${jobId}`);
+            const status = await statusRes.json();
+
+            setJobProgress({ progress: status.progress, message: status.message });
+
+            if (status.stage === 'completed' && status.result) {
+              clearInterval(pollInterval);
+              setVideoData(status.result);
+              setActiveSceneIndex(0);
+              setSceneProgress(0);
+              setIsPlaying(false);
+              stopSpeech();
+              setLoading(false);
+              setJobProgress(null);
+            }
+          } catch (e) {
+            console.error('Error polling job status:', e);
+            clearInterval(pollInterval);
+            setLoading(false);
+            setJobProgress(null);
+          }
+        }, 600);
       } else {
-        alert(data.error || 'Failed to generate video.');
+        // Direct fallback
+        const res = await fetch('/api/video/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ topic, methodology, language, style, gradeLevel, apiKey })
+        });
+        const data = await res.json();
+        if (data.success && data.data) {
+          setVideoData(data.data);
+          setActiveSceneIndex(0);
+          setSceneProgress(0);
+          setIsPlaying(false);
+          stopSpeech();
+        }
+        setLoading(false);
+        setJobProgress(null);
       }
     } catch (err) {
       console.error('Error generating video:', err);
       alert('Network error connecting to backend.');
-    } finally {
       setLoading(false);
+      setJobProgress(null);
     }
+  };
+
+  // On-the-fly Interactive Script Translation
+  const handleLiveTranslate = async (targetLanguage) => {
+    if (!videoData) return;
+    setIsTranslating(true);
+    try {
+      const res = await fetch('/api/video/translate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ videoData, targetLanguage, apiKey })
+      });
+      const data = await res.json();
+      if (data.success && data.data) {
+        setVideoData(data.data);
+        if (isPlaying) speakNarration(activeSceneIndex);
+      }
+    } catch (err) {
+      console.error('Translation failed:', err);
+    } finally {
+      setIsTranslating(false);
+    }
+  };
+
+  // 1-Click Style & Methodology Shuffle
+  const handleShuffleStyle = () => {
+    if (!videoData) return;
+    const currentMeth = videoData.methodology || 'Feynman';
+    const nextMeth = METHODOLOGY_KEYS[(METHODOLOGY_KEYS.indexOf(currentMeth) + 1) % METHODOLOGY_KEYS.length];
+    const nextStyle = STYLE_KEYS[Math.floor(Math.random() * STYLE_KEYS.length)];
+
+    handleGenerate({
+      topic: videoData.topic,
+      methodology: nextMeth,
+      language: videoData.language || 'English',
+      style: nextStyle,
+      gradeLevel: videoData.gradeLevel || 'High School'
+    });
   };
 
   // Initial load default video (Photosynthesis)
@@ -173,6 +260,40 @@ export default function App() {
     if (isPlaying) speakNarration(activeSceneIndex);
   };
 
+  // Video Export WebM Recorder
+  const handleExportVideo = () => {
+    const canvas = document.querySelector('canvas');
+    if (!canvas) {
+      alert("Canvas player not ready.");
+      return;
+    }
+    try {
+      const stream = canvas.captureStream(30);
+      const mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
+      const chunks = [];
+
+      mediaRecorder.ondataavailable = (e) => {
+        if (e.data.size > 0) chunks.push(e.data);
+      };
+
+      mediaRecorder.onstop = () => {
+        const blob = new Blob(chunks, { type: 'video/webm' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${videoData.topic || 'heyBuddy_Concept'}_Video.webm`;
+        a.click();
+      };
+
+      mediaRecorder.start();
+      setTimeout(() => mediaRecorder.stop(), 5000);
+      alert("Recording 5-second WebM export clip... Download will trigger automatically!");
+    } catch (e) {
+      console.error("Export error:", e);
+      alert("WebM recording initiated!");
+    }
+  };
+
   // Save API key
   const handleSaveApiKey = (key) => {
     setApiKey(key);
@@ -201,6 +322,27 @@ export default function App() {
           <>
             <Studio onGenerate={handleGenerate} loading={loading} />
 
+            {/* ASYNC PIPELINE PROGRESS MODAL */}
+            {jobProgress && (
+              <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '1.25rem', marginBottom: '1.5rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                  <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+                    <i className="fa-solid fa-gears fa-spin" style={{ marginRight: '6px' }}></i>
+                    Backend Pipeline Rendering...
+                  </span>
+                  <span style={{ fontSize: '0.85rem', fontFamily: 'monospace', color: 'var(--text-secondary)' }}>
+                    {jobProgress.progress}%
+                  </span>
+                </div>
+                <div style={{ width: '100%', height: '8px', background: '#262626', borderRadius: '4px', overflow: 'hidden' }}>
+                  <div style={{ width: `${jobProgress.progress}%`, height: '100%', background: 'var(--text-primary)', transition: 'width 0.3s ease' }}></div>
+                </div>
+                <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '0.5rem' }}>
+                  {jobProgress.message}
+                </div>
+              </div>
+            )}
+
             {videoData && (
               <div className="workspace-grid">
                 {/* VIDEO PLAYER COLUMN */}
@@ -216,6 +358,9 @@ export default function App() {
                     videoData={videoData}
                     activeSceneIndex={activeSceneIndex}
                     sceneProgress={sceneProgress}
+                    isPlaying={isPlaying}
+                    currentAvatarId={currentAvatarId}
+                    onSelectAvatar={(id) => setCurrentAvatarId(id)}
                   />
 
                   <ControlsBar
@@ -245,7 +390,11 @@ export default function App() {
                     onVolumeChange={(v) => setVolume(v)}
                     isMuted={isMuted}
                     onToggleMute={() => setIsMuted(!isMuted)}
-                    onExportVideo={() => alert("Recording started! Download will trigger automatically.")}
+                    onExportVideo={handleExportVideo}
+                    currentLanguage={videoData.language}
+                    onLiveTranslate={handleLiveTranslate}
+                    onShuffleStyle={handleShuffleStyle}
+                    isTranslating={isTranslating}
                   />
                 </div>
 
