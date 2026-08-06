@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { API_BASE_URL } from '../config';
 
 export default function DoubtChat({ topic, methodology, language, apiKey }) {
   const [messages, setMessages] = useState([
@@ -17,7 +18,7 @@ export default function DoubtChat({ topic, methodology, language, apiKey }) {
     setLoading(true);
 
     try {
-      const res = await fetch('/api/chat/doubt', {
+      const res = await fetch(`${API_BASE_URL}/api/chat/doubt`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

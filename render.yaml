@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: heybuddy-backend
+    env: node
+    region: oregon
+    buildCommand: npm --prefix server install
+    startCommand: npm --prefix server start
+    envVars:
+      - key: PORT
+        value: 10000
+      - key: CLIENT_ORIGIN
+        value: "*"

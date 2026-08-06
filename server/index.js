@@ -6,32 +6,35 @@ const apiRoutes = require('./routes/api');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(cors());
+// Enable CORS for Vercel Frontend & Localhost
+app.use(cors({
+  origin: process.env.CLIENT_ORIGIN || '*',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
+}));
+
 app.use(express.json({ limit: '10mb' }));
+
+// Render Health Check Endpoint
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok', service: 'heyBuddy Express API', timestamp: new Date() });
+});
+
+// Root route for standalone backend
+app.get('/', (req, res) => {
+  res.send('⚡ heyBuddy Express API Server is Live & Running on Render.');
+});
 
 // API Routes
 app.use('/api', apiRoutes);
 
-// Serve static frontend in production
+// Fallback route for static client if served together
 const clientDist = path.join(__dirname, '../client/dist');
 app.use(express.static(clientDist));
 
-// Fallback route for SPA
-app.use((req, res) => {
-  if (req.path.startsWith('/api')) {
-    return res.status(404).json({ error: 'API route not found' });
-  }
-  res.sendFile(path.join(clientDist, 'index.html'), (err) => {
-    if (err) {
-      res.send('heyBuddy MERN API Server Running.');
-    }
-  });
+app.listen(PORT, () => {
+  console.log(`\n⚡ heyBuddy Express API Backend running on port ${PORT}`);
 });
-
-if (!process.env.VERCEL) {
-  app.listen(PORT, () => {
-    console.log(`\n⚡ heyBuddy MERN Backend running at http://localhost:${PORT}`);
-  });
-}
 
 module.exports = app;

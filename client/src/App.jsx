@@ -7,6 +7,7 @@ import QuizTab from './components/QuizTab';
 import NotesTab from './components/NotesTab';
 import DoubtChat from './components/DoubtChat';
 import Library from './components/Library';
+import { API_BASE_URL } from './config';
 
 const METHODOLOGY_KEYS = ['Feynman', 'Socratic', 'Analogy', 'FirstPrinciples', 'ELI5'];
 const STYLE_KEYS = ['Minimalist', 'Technical', 'Chalkboard', 'DataFlow'];
@@ -52,7 +53,7 @@ export default function App() {
 
     try {
       // 1. Call async job rendering pipeline
-      const asyncRes = await fetch('/api/video/render-async', {
+      const asyncRes = await fetch(`${API_BASE_URL}/api/video/render-async`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ topic, methodology, language, style, gradeLevel, apiKey })
@@ -64,7 +65,7 @@ export default function App() {
         // Poll for job completion
         const pollInterval = setInterval(async () => {
           try {
-            const statusRes = await fetch(`/api/video/job/${jobId}`);
+            const statusRes = await fetch(`${API_BASE_URL}/api/video/job/${jobId}`);
             const status = await statusRes.json();
 
             setJobProgress({ progress: status.progress, message: status.message });
@@ -88,7 +89,7 @@ export default function App() {
         }, 600);
       } else {
         // Direct fallback
-        const res = await fetch('/api/video/generate', {
+        const res = await fetch(`${API_BASE_URL}/api/video/generate`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ topic, methodology, language, style, gradeLevel, apiKey })
@@ -117,7 +118,7 @@ export default function App() {
     if (!videoData) return;
     setIsTranslating(true);
     try {
-      const res = await fetch('/api/video/translate', {
+      const res = await fetch(`${API_BASE_URL}/api/video/translate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ videoData, targetLanguage, apiKey })
@@ -505,7 +506,7 @@ export default function App() {
       )}
 
       <footer className="footer">
-        © 2026 heyBuddy AI EdTech Platform • MERN + React Architecture
+        © 2026 heyBuddy AI EdTech Platform • Decoupled Render + Vercel Stack
       </footer>
     </div>
   );
