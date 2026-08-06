@@ -1,14 +1,20 @@
 {
-  "name": "heybuddy",
+  "name": "heybuddy-workspace",
   "version": "1.0.0",
-  "description": "AI-Powered EdTech Video Learning Platform",
-  "main": "server.js",
+  "description": "heyBuddy AI EdTech Platform - MERN & React (Vite)",
+  "main": "server/index.js",
   "scripts": {
-    "start": "node server.js",
-    "dev": "node server.js"
+    "start": "node server/index.js",
+    "server": "node server/index.js",
+    "client": "npm --prefix client run dev",
+    "dev": "concurrently \"npm run server\" \"npm run client\"",
+    "build": "npm --prefix client run build"
   },
   "dependencies": {
-    "express": "^5.2.1",
-    "cors": "^2.8.5"
+    "cors": "^2.8.5",
+    "express": "^5.2.1"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
   }
 }
