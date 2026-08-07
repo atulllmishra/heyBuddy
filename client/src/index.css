@@ -2,10 +2,18 @@
 @tailwind components;
 @tailwind utilities;
 
-@layer base {
-  body {
-    @apply bg-[#0f0f0f] text-[#f1f1f1] font-sans antialiased selection:bg-red-600 selection:text-white min-h-screen overflow-x-hidden;
-  }
+body {
+  background-color: #0f0f0f;
+  color: #f1f1f1;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+::selection {
+  background-color: #dc2626;
+  color: #ffffff;
 }
 
 /* Authentic YouTube Dark Theme UI Components */
@@ -22,13 +30,17 @@
 .yt-pill-btn {
   background-color: #272727;
   color: #f1f1f1;
-  @apply transition-colors duration-150 hover:bg-[#3f3f3f];
+  transition: background-color 150ms ease-in-out;
+}
+
+.yt-pill-btn:hover {
+  background-color: #3f3f3f;
 }
 
 .yt-pill-active {
   background-color: #f1f1f1;
   color: #0f0f0f;
-  @apply font-bold;
+  font-weight: 700;
 }
 
 .yt-search-bar {
