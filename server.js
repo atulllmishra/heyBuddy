@@ -573,6 +573,103 @@ Feel free to ask me to elaborate on any specific step or formula! 🚀`;
   }
 });
 
+// Student Analytics In-Memory Store
+let studentAnalyticsStore = {
+  studyStreakDays: 7,
+  totalWatchTimeHours: 14.8,
+  masterclassesCompleted: 18,
+  doubtsSolved: 34,
+  quizzesCompleted: 12,
+  topicMastery: [
+    { subject: 'Biology', score: 92, status: 'Mastered', color: '#10B981', totalQuizzes: 5 },
+    { subject: 'Physics', score: 85, status: 'Proficient', color: '#3B82F6', totalQuizzes: 4 },
+    { subject: 'Chemistry', score: 78, status: 'Developing', color: '#F59E0B', totalQuizzes: 3 },
+    { subject: 'Mathematics', score: 88, status: 'Proficient', color: '#8B5CF6', totalQuizzes: 4 },
+    { subject: 'Computer Science', score: 94, status: 'Mastered', color: '#06B6D4', totalQuizzes: 6 }
+  ],
+  weeklyActivity: [
+    { day: 'Mon', minutes: 45 },
+    { day: 'Tue', minutes: 60 },
+    { day: 'Wed', minutes: 30 },
+    { day: 'Thu', minutes: 75 },
+    { day: 'Fri', minutes: 90 },
+    { day: 'Sat', minutes: 120 },
+    { day: 'Sun', minutes: 50 }
+  ],
+  recentQuizLog: [
+    { id: 1, topic: 'Photosynthesis & Light Reactions', score: '3/3', subject: 'Biology', date: '2 hours ago' },
+    { id: 2, topic: "Newton's Laws & Vector Mechanics", score: '2/2', subject: 'Physics', date: '1 day ago' },
+    { id: 3, topic: 'Quantum Entanglement', score: '3/3', subject: 'Physics', date: '2 days ago' }
+  ]
+};
+
+// Analytics GET Endpoint
+app.get('/api/analytics', (req, res) => {
+  res.json({ success: true, data: studentAnalyticsStore });
+});
+
+// Analytics POST Event Endpoint (Logs watch time, doubts, quiz scores, manual sessions)
+app.post('/api/analytics/log', (req, res) => {
+  try {
+    const { action, minutes, subject, quizScore, doubtAsked, topic } = req.body;
+
+    if (action === 'log_minutes' && minutes) {
+      studentAnalyticsStore.totalWatchTimeHours = +(studentAnalyticsStore.totalWatchTimeHours + (minutes / 60)).toFixed(1);
+      // Update current day in weekly activity
+      const todayIdx = new Date().getDay(); // 0 is Sun, 1 Mon...
+      const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+      const todayName = dayNames[todayIdx];
+      const dayObj = studentAnalyticsStore.weeklyActivity.find(d => d.day === todayName);
+      if (dayObj) dayObj.minutes += Number(minutes);
+    }
+
+    if (action === 'doubt_asked' || doubtAsked) {
+      studentAnalyticsStore.doubtsSolved += 1;
+    }
+
+    if (action === 'masterclass_completed') {
+      studentAnalyticsStore.masterclassesCompleted += 1;
+      studentAnalyticsStore.totalWatchTimeHours = +(studentAnalyticsStore.totalWatchTimeHours + 0.2).toFixed(1);
+    }
+
+    if (action === 'quiz_completed' && quizScore) {
+      studentAnalyticsStore.quizzesCompleted += 1;
+      if (subject) {
+        const item = studentAnalyticsStore.topicMastery.find(m => m.subject.toLowerCase() === subject.toLowerCase());
+        if (item) {
+          item.score = Math.min(100, item.score + 2);
+          if (item.score >= 90) item.status = 'Mastered';
+          else if (item.score >= 80) item.status = 'Proficient';
+        }
+      }
+      if (topic) {
+        studentAnalyticsStore.recentQuizLog.unshift({
+          id: Date.now(),
+          topic,
+          score: quizScore,
+          subject: subject || 'General',
+          date: 'Just now'
+        });
+        if (studentAnalyticsStore.recentQuizLog.length > 10) studentAnalyticsStore.recentQuizLog.pop();
+      }
+    }
+
+    if (action === 'reset') {
+      studentAnalyticsStore.studyStreakDays = 1;
+      studentAnalyticsStore.totalWatchTimeHours = 0;
+      studentAnalyticsStore.masterclassesCompleted = 0;
+      studentAnalyticsStore.doubtsSolved = 0;
+      studentAnalyticsStore.quizzesCompleted = 0;
+      studentAnalyticsStore.recentQuizLog = [];
+    }
+
+    return res.json({ success: true, data: studentAnalyticsStore });
+  } catch (err) {
+    console.error('[heyBuddy] Analytics log error:', err);
+    res.status(500).json({ error: 'Failed to update analytics' });
+  }
+});
+
 // Curated Sample Topics Endpoint
 app.get('/api/sample-topics', (req, res) => {
   res.json([
@@ -585,3 +682,4 @@ app.get('/api/sample-topics', (req, res) => {
 app.listen(PORT, () => {
   console.log(`\n🚀 heyBuddy AI EdTech Platform running at http://localhost:${PORT}`);
 });
+

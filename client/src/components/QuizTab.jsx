@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { CheckCircle2, XCircle, HelpCircle, Award, RotateCcw } from 'lucide-react';
+import { API_BASE_URL } from '../config';
 
 export default function QuizTab({ topic, currentScene, quizItems = [] }) {
   const [userAnswers, setUserAnswers] = useState({});
@@ -33,9 +34,24 @@ export default function QuizTab({ topic, currentScene, quizItems = [] }) {
 
   const handleSelectOption = (qIdx, oIdx, correctIdx) => {
     if (userAnswers[qIdx] !== undefined) return;
-    setUserAnswers(prev => ({ ...prev, [qIdx]: oIdx }));
-    if (oIdx === correctIdx) {
-      setScore(prev => prev + 1);
+    const newAnswers = { ...userAnswers, [qIdx]: oIdx };
+    setUserAnswers(newAnswers);
+    const isCorrect = oIdx === correctIdx;
+    const newScore = isCorrect ? score + 1 : score;
+    if (isCorrect) setScore(newScore);
+
+    // If all questions are answered, log to Analytics API
+    if (Object.keys(newAnswers).length === questions.length) {
+      fetch(`${API_BASE_URL}/api/analytics/log`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'quiz_completed',
+          quizScore: `${newScore}/${questions.length}`,
+          subject: 'Physics',
+          topic: topic || 'Masterclass Evaluation'
+        })
+      }).catch(err => console.warn('Failed to log quiz analytics:', err));
     }
   };
 

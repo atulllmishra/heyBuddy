@@ -18,6 +18,8 @@ export default function App() {
   // Navigation & Layout State
   const [activeNav, setActiveNav] = useState('home'); // 'home' | 'studio' | 'watch' | 'library' | 'history' | 'analytics' | 'settings'
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const [selectedDomain, setSelectedDomain] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedStudioTopic, setSelectedStudioTopic] = useState('');
 
@@ -123,6 +125,16 @@ export default function App() {
           })
         }).catch(err => console.warn('Failed to log history:', err));
 
+        // Telemetry Analytics Logging
+        fetch(`${API_BASE_URL}/api/analytics/log`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'masterclass_completed',
+            subject: json.data.subject || 'General'
+          })
+        }).catch(err => console.warn('Failed to log analytics:', err));
+
       } else {
         alert(json.error || 'Failed to generate lecture script.');
       }
@@ -161,6 +173,14 @@ export default function App() {
     handleGenerate({ topic: searchQuery });
   };
 
+  const handleToggleSidebar = () => {
+    if (window.innerWidth < 768) {
+      setIsMobileSidebarOpen(!isMobileSidebarOpen);
+    } else {
+      setIsSidebarCollapsed(!isSidebarCollapsed);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#0B0F19] text-slate-100 flex flex-col font-sans">
       {/* Top Fixed Header */}
@@ -170,7 +190,7 @@ export default function App() {
         user={user}
         onOpenAuth={() => setShowAuthModal(true)}
         onOpenSettings={() => setShowKeyModal(true)}
-        onToggleSidebar={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+        onToggleSidebar={handleToggleSidebar}
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
         onSearchSubmit={handleSearchSubmit}
@@ -182,7 +202,11 @@ export default function App() {
         <Sidebar
           activeNav={activeNav}
           onSelectNav={setActiveNav}
+          onSelectDomain={setSelectedDomain}
+          selectedDomain={selectedDomain}
           isCollapsed={isSidebarCollapsed}
+          isMobileOpen={isMobileSidebarOpen}
+          onCloseMobile={() => setIsMobileSidebarOpen(false)}
         />
 
         {/* Center Page Content Workspace */}
@@ -191,6 +215,8 @@ export default function App() {
             <HomePage
               onSelectTopic={handleSelectTopicFromHome}
               onNavigateStudio={handleNavigateStudio}
+              selectedDomain={selectedDomain}
+              onSelectDomain={setSelectedDomain}
             />
           )}
 
