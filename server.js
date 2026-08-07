@@ -1,6 +1,11 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+
+const { fetchDeepAcademicContext } = require('./server/services/academicDataFetcher');
+const { generateScriptAndVisuals } = require('./server/services/aiOrchestrator');
+const { getHeyGenAvatarsAndVoices, generateHeyGenAvatarVideo } = require('./server/services/apiIntegrations');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -431,144 +436,90 @@ function createCustomProceduralVideo(topic, gradeLevel, style) {
 // API Routes
 app.post('/api/generate-video', async (req, res) => {
   try {
-    const { topic, gradeLevel = 'High School', style = 'Visual', apiKey } = req.body;
-    
+    const {
+      topic,
+      gradeLevel = 'High School',
+      streamDomain = 'STEM / Physical Sciences',
+      lectureDuration = '5 Mins',
+      methodology = 'Feynman',
+      language = 'English',
+      style = 'Minimalist',
+      apiKey,
+      openaiKey
+    } = req.body;
+
     if (!topic || topic.trim() === '') {
       return res.status(400).json({ error: 'Please enter a valid topic or question.' });
     }
 
-    const lowerTopic = topic.toLowerCase();
+    console.log(`[heyBuddy Server] Processing request for topic: "${topic}" (${lectureDuration}, ${gradeLevel})...`);
+    const lectureData = await generateScriptAndVisuals({
+      topic,
+      gradeLevel,
+      streamDomain,
+      lectureDuration,
+      methodology,
+      language,
+      style,
+      apiKey,
+      openaiKey
+    });
 
-    // Check if user topic matches our rich pre-built topics
-    let matchingKey = Object.keys(PROCEDURAL_TOPICS).find(k => lowerTopic.includes(k));
-    
-    if (matchingKey) {
-      console.log(`[heyBuddy] Serving procedural topic: ${matchingKey}`);
-      return res.json({ success: true, data: PROCEDURAL_TOPICS[matchingKey], source: 'procedural_library' });
-    }
-
-    // Try Gemini API if key is provided (or process.env.GEMINI_API_KEY)
-    const effectiveKey = apiKey || process.env.GEMINI_API_KEY;
-    if (effectiveKey) {
-      try {
-        console.log(`[heyBuddy] Calling Gemini API for custom topic: ${topic}`);
-        const prompt = `You are heyBuddy, an expert AI EdTech Video Producer. Generate a complete structured JSON response for an educational video explaining the topic "${topic}" tailored for ${gradeLevel} students with learning style "${style}".
-Respond ONLY with valid JSON (no markdown fences, no extra text) conforming to this exact schema:
-{
-  "topic": "${topic}",
-  "subject": "STEM / Science / General",
-  "gradeLevel": "${gradeLevel}",
-  "durationSeconds": 40,
-  "summary": "Brief summary",
-  "scenes": [
-    {
-      "id": 1,
-      "title": "Scene 1 Title",
-      "duration": 10,
-      "narration": "Speech script to be read by voice narrator explaining this step.",
-      "visualType": "diagram",
-      "canvasData": {
-        "bgGradient": ["#0F172A", "#1E1B4B"],
-        "mainTitle": "Scene Title",
-        "elements": [
-          { "type": "concept_node", "x": 450, "y": 250, "label": "Main Idea", "color": "#6366F1", "r": 60 },
-          { "type": "branch_node", "x": 250, "y": 200, "label": "Detail A", "color": "#3B82F6" },
-          { "type": "branch_node", "x": 650, "y": 200, "label": "Detail B", "color": "#10B981" }
-        ]
-      },
-      "bullets": ["Bullet point 1", "Bullet point 2"]
-    },
-    {
-      "id": 2,
-      "title": "Scene 2 Title",
-      "duration": 10,
-      "narration": "Narration for step 2",
-      "visualType": "process_flow",
-      "canvasData": {
-        "bgGradient": ["#022C22", "#0F172A"],
-        "mainTitle": "Process Flow",
-        "elements": [
-          { "type": "flow_step", "x": 200, "y": 270, "title": "Start", "color": "#F59E0B" },
-          { "type": "flow_step", "x": 500, "y": 270, "title": "Transform", "color": "#6366F1" },
-          { "type": "flow_step", "x": 750, "y": 270, "title": "Output", "color": "#10B981" }
-        ]
-      },
-      "bullets": ["Step 1 explanation", "Step 2 explanation"]
-    },
-    {
-      "id": 3,
-      "title": "Scene 3 Title",
-      "duration": 10,
-      "narration": "Narration for key formula or deep dive",
-      "visualType": "formula_demo",
-      "canvasData": {
-        "bgGradient": ["#172554", "#311B92"],
-        "mainTitle": "Formula & Equation",
-        "elements": [
-          { "type": "formula_banner", "text": "Core Equation", "x": 250, "y": 240, "color": "#38BDF8" }
-        ]
-      },
-      "bullets": ["Formula component 1", "Formula component 2"]
-    },
-    {
-      "id": 4,
-      "title": "Summary & Takeaways",
-      "duration": 10,
-      "narration": "Summary narration wrapping up the lesson.",
-      "visualType": "summary_card",
-      "canvasData": {
-        "bgGradient": ["#0F172A", "#1E293B"],
-        "mainTitle": "Key Takeaways",
-        "elements": [
-          { "type": "summary_grid", "items": ["Key Point 1", "Key Point 2", "Key Point 3"] }
-        ]
-      },
-      "bullets": ["Final takeaway 1", "Final takeaway 2"]
-    }
-  ],
-  "quiz": [
-    {
-      "question": "Sample Question 1?",
-      "options": ["Option A", "Option B", "Option C", "Option D"],
-      "correctIndex": 0,
-      "explanation": "Why Option A is correct."
-    }
-  ],
-  "notes": [
-    { "title": "Summary Note 1", "content": "Important note content." }
-  ]
-}`;
-
-        const geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${effectiveKey}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }]
-          })
-        });
-
-        if (geminiRes.ok) {
-          const geminiData = await geminiRes.json();
-          let textRes = geminiData.candidates?.[0]?.content?.parts?.[0]?.text || '';
-          textRes = textRes.replace(/```json/g, '').replace(/```/g, '').trim();
-          const parsed = JSON.parse(textRes);
-          return res.json({ success: true, data: parsed, source: 'gemini_ai' });
-        }
-      } catch (err) {
-        console.warn(`[heyBuddy] Gemini API call failed or parse error, falling back to procedural engine:`, err.message);
-      }
-    }
-
-    // Fallback to custom procedural video generator
-    console.log(`[heyBuddy] Generating custom procedural video for: ${topic}`);
-    const customVideo = createCustomProceduralVideo(topic, gradeLevel, style);
-    return res.json({ success: true, data: customVideo, source: 'procedural_engine' });
-
+    return res.json({ success: true, data: lectureData, source: 'deep_academic_orchestrator' });
   } catch (error) {
-    console.error('[heyBuddy] Error generating video:', error);
-    res.status(500).json({ error: 'Failed to generate AI video. Please try again.' });
+    console.error('[heyBuddy] Error generating video lecture:', error);
+    res.status(500).json({ error: 'Failed to generate AI video lecture. Please try again.' });
   }
 });
+
+// Deep Academic Data Aggregator Query Endpoint
+app.post('/api/academic-data', async (req, res) => {
+  try {
+    const { topic, streamDomain = 'STEM / Physical Sciences' } = req.body;
+    if (!topic) return res.status(400).json({ error: 'Topic is required.' });
+
+    const context = await fetchDeepAcademicContext(topic, streamDomain);
+    res.json({ success: true, data: context });
+  } catch (err) {
+    console.error('[heyBuddy] Academic data fetch error:', err);
+    res.status(500).json({ error: 'Failed to fetch academic context.' });
+  }
+});
+
+// HeyGen Male & Female Avatars and Voices Catalog Endpoint
+app.get('/api/heygen/avatars-voices', (req, res) => {
+  const catalog = getHeyGenAvatarsAndVoices();
+  res.json({ success: true, data: catalog });
+});
+
+// HeyGen Interactive Video Generation Endpoint
+app.post('/api/heygen/generate-video', async (req, res) => {
+  try {
+    const { scriptText, avatarId, voiceId, gender = 'female', heygenKey } = req.body;
+    const effectiveKey = heygenKey || process.env.HEYGEN_API_KEY;
+
+    if (!scriptText) return res.status(400).json({ error: 'Script text is required.' });
+    if (!effectiveKey) return res.status(400).json({ error: 'HeyGen API key is required.' });
+
+    const result = await generateHeyGenAvatarVideo({
+      scriptText,
+      avatarId,
+      voiceId,
+      gender,
+      apiKey: effectiveKey
+    });
+
+    if (result && result.videoId) {
+      res.json({ success: true, data: result });
+    } else {
+      res.status(500).json({ error: 'Failed to generate HeyGen avatar video.' });
+    }
+  } catch (err) {
+    console.error('[heyBuddy] HeyGen video generation route error:', err);
+    res.status(500).json({ error: 'HeyGen video generation failed.' });
+  }
+});
+
 
 // Doubt Solver AI Endpoint
 app.post('/api/chat-doubt', async (req, res) => {

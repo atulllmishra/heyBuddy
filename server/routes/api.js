@@ -8,6 +8,12 @@ router.get('/video/options', videoController.getOptions);
 router.post('/video/render-async', videoController.startAsyncJob);
 router.get('/video/job/:jobId', videoController.getJobStatus);
 router.post('/video/translate', videoController.translateVideo);
+router.post('/video/tts-sarvam', videoController.synthesizeSarvamTTS);
+router.post('/video/tts-elevenlabs', videoController.synthesizeElevenLabs);
+
+router.post('/academic-data', videoController.getAcademicData);
+router.get('/heygen/avatars-voices', videoController.getHeyGenCatalog);
+router.post('/heygen/generate-video', videoController.generateHeyGenVideo);
 
 router.post('/chat/doubt', chatController.handleDoubtChat);
 

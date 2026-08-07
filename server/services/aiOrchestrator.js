@@ -1,387 +1,276 @@
 /**
- * AI Orchestrator Service - Prompt Chains, Teaching Methodologies, Translations, Avatar Data & RAG Context
+ * AI Orchestrator Service - Single-Scene Hinglish Masterclass Engine
+ * Generates ONE unified, content-packed Masterclass Scene with rich Hinglish narration (Hindi + English EdTech style)
+ * Ingests OpenStax, Gutenberg, Internet Archive, LibreTexts, Wikidata SPARQL, Wolfram Alpha, YouTube Transcripts, and Stack Exchange.
  */
 
-const METHODOLOGIES = {
-  Feynman: "Feynman Technique: Use simple everyday language, clear analogies, zero unnecessary jargon, and focus on fundamental intuition.",
-  Socratic: "Socratic Dialogue: Structure explanation as a series of guiding questions, encouraging active reasoning and self-discovery.",
-  Analogy: "Analogy & Metaphor: Relate complex concepts to engaging real-world stories, sports, cooking, or relatable daily life scenarios.",
-  FirstPrinciples: "First Principles Thinking: Deconstruct the topic down to its most basic, undeniable truths and build up logically from foundational axioms.",
-  ELI5: "Explain Like I'm 5: Ultra-playful, visual, simple words, exciting step-by-step storytelling."
-};
+const { fetchDeepAcademicContext } = require('./academicDataFetcher');
+const { callLLMProvider } = require('./apiIntegrations');
 
-const LANGUAGES = {
-  English: "English",
-  Hindi: "Hindi (हिंदी)",
-  Spanish: "Spanish (Español)",
-  French: "French (Français)",
-  German: "German (Deutsch)",
-  Japanese: "Japanese (日本語)",
-  Chinese: "Mandarin Chinese (中文)",
-  Arabic: "Arabic (العربية)"
-};
-
-const STYLES = {
-  Minimalist: { bgGradient: ["#050505", "#141414"], primaryColor: "#FFFFFF", accentColor: "#888888" },
-  Technical: { bgGradient: ["#020617", "#0F172A"], primaryColor: "#38BDF8", accentColor: "#A78BFA" },
-  Chalkboard: { bgGradient: ["#0B1311", "#13231F"], primaryColor: "#FDE047", accentColor: "#34D399" },
-  DataFlow: { bgGradient: ["#0A0A0F", "#1A1A2E"], primaryColor: "#EC4899", accentColor: "#06B6D4" }
-};
-
-// Built-in Procedural Library for instant showcase
+/**
+ * Procedural Single-Scene Masterclass Library in Hinglish
+ */
 const BASE_TOPICS = {
   "photosynthesis": {
-    topic: "Photosynthesis & Light-Dependent Reactions",
-    subject: "Biology / Biochemistry",
-    durationSeconds: 40,
-    summary: "How plant chloroplasts transform light energy into chemical glucose.",
+    topic: "Photosynthesis & Light Reactions (Complete Masterclass)",
+    subject: "Medical & Life Sciences",
+    gradeLevel: "High School / AP",
+    streamDomain: "Medical & Life Sciences",
+    lectureDuration: "Full Masterclass",
+    durationSeconds: 240,
+    language: "Hinglish",
+    summary: "Complete single-scene breakdown of Photosynthesis, Thylakoid light reactions, photolysis, and Calvin cycle in natural Hinglish.",
     scenes: [
       {
         id: 1,
-        title: "The Solar Factory of Nature",
-        duration: 10,
-        narration: "Welcome to heyBuddy AI! Photosynthesis takes place inside plant chloroplasts, turning sunlight, water, and carbon dioxide into oxygen and glucose.",
-        visualType: "diagram",
+        title: "Photosynthesis Complete Unified Breakdown",
+        duration: 240,
+        narration: "Welcome to heyBuddy AI Masterclass! Aaj hum Photosynthesis ko bilkul first principles se samjhenge. Plant leaves ke andar jo green chloroplast organelles hote hain, wo solar photons, water (H2O), aur atmospheric carbon dioxide (CO2) ko absorb karke glucose sugar (C6H12O6) aur oxygen gas (O2) banate hain. Thylakoid membrane ke andar light-dependent reactions hoti hain jahan Photosystem II 680 nanometer wavelength light ko absorb karke water ko split karta hai: 2 H2O breaks into 4 protons, oxygen gas, and 4 excited electrons. Is electron flow se proton gradient banta hai jo ATP Synthase rotor ko spin karta hai, forming ATP and NADPH. Phir stroma me Calvin cycle dwara RuBisCO enzyme carbon dioxide ko fix karke glucose synthesize karta hai! Sabhi points ko dhyaan se dekhiye aur quiz attempt kijiye!",
+        visualType: "masterclass_unified",
         canvasData: {
-          bgGradient: ["#050505", "#141414"],
-          mainTitle: "Photosynthesis Overview",
+          bgGradient: ["#070a14", "#121b2d"],
+          mainTitle: "Photosynthesis & Light Reactions - Complete Concept Map",
           elements: [
-            { type: "sun", x: 150, y: 120, radius: 45, color: "#FFFFFF", glow: true, label: "Sunlight (hν)" },
-            { type: "leaf", x: 480, y: 260, width: 220, height: 160, color: "#EAEAEA" },
-            { type: "molecule", x: 180, y: 320, name: "6 H₂O", color: "#CCCCCC" },
-            { type: "molecule", x: 180, y: 380, name: "6 CO₂", color: "#AAAAAA" },
-            { type: "arrow", from: [220, 150], to: [420, 240], color: "#FFFFFF", label: "Light Energy" },
-            { type: "output", x: 700, y: 240, name: "6 O₂ (Oxygen Released)", color: "#FFFFFF" },
-            { type: "output", x: 700, y: 340, name: "C₆H₁₂O₆ (Glucose)", color: "#CCCCCC" }
+            { type: "sun", x: 180, y: 110, radius: 40, color: "#F59E0B", label: "Sunlight (hν Photons)" },
+            { type: "leaf", x: 480, y: 230, width: 340, height: 180, color: "#10B981" },
+            { type: "molecule", x: 160, y: 220, name: "6 H₂O (Water)", color: "#38BDF8" },
+            { type: "molecule", x: 160, y: 290, name: "6 CO₂ (Carbon Dioxide)", color: "#94A3B8" },
+            { type: "arrow", from: [230, 120], to: [400, 200], color: "#F59E0B", label: "Light Energy" },
+            { type: "output", x: 800, y: 200, name: "6 O₂ (Oxygen Released)", color: "#34D399" },
+            { type: "output", x: 800, y: 290, name: "C₆H₁₂O₆ (Glucose Sugar)", color: "#F59E0B" },
+            { type: "formula_banner", text: "Net Reaction:  6 CO₂  +  6 H₂O  +  Light   →   C₆H₁₂O₆  +  6 O₂", x: 160, y: 360, color: "#818CF8" }
           ]
         },
-        bullets: ["Location: Chloroplast Thylakoids", "Inputs: Light + Water + CO₂", "Outputs: Oxygen + Glucose"]
-      },
-      {
-        id: 2,
-        title: "Inside Chloroplast Thylakoids",
-        duration: 10,
-        narration: "Inside the thylakoid membrane, light photons excite electrons in Photosystem II, triggering the photolysis splitting of water molecules.",
-        visualType: "particle_flow",
-        canvasData: {
-          bgGradient: ["#050505", "#141414"],
-          mainTitle: "Thylakoid Membrane & Photosystem II",
-          elements: [
-            { type: "complex", x: 260, y: 230, width: 90, height: 100, name: "Photosystem II", color: "#FFFFFF" },
-            { type: "complex", x: 480, y: 230, width: 90, height: 100, name: "Electron Transport", color: "#CCCCCC" },
-            { type: "complex", x: 700, y: 230, width: 90, height: 100, name: "ATP Synthase", color: "#AAAAAA" },
-            { type: "electron_pulse", path: [[260, 200], [480, 200], [700, 200]], color: "#FFFFFF" }
-          ]
-        },
-        bullets: ["Photolysis: 2H₂O → 4H⁺ + O₂ + 4e⁻", "Excited electron transport", "Proton accumulation in lumen"]
-      },
-      {
-        id: 3,
-        title: "ATP & NADPH Energy Generation",
-        duration: 10,
-        narration: "Proton movement drives ATP Synthase rotation, creating high-energy ATP and NADPH molecules to fuel the Calvin Cycle.",
-        visualType: "formula_demo",
-        canvasData: {
-          bgGradient: ["#050505", "#141414"],
-          mainTitle: "Energy Synthesis",
-          elements: [
-            { type: "math_formula", text: "ADP + Pi + Energy → ATP", x: 240, y: 200, color: "#FFFFFF" },
-            { type: "math_formula", text: "NADP⁺ + H⁺ + 2e⁻ → NADPH", x: 240, y: 280, color: "#CCCCCC" }
-          ]
-        },
-        bullets: ["Chemiosmotic proton gradient", "ATP and NADPH travel to Stroma", "Powers carbon fixation"]
-      },
-      {
-        id: 4,
-        title: "Summary & Equation",
-        duration: 10,
-        narration: "To recap: Sunlight splits water to release oxygen and forms ATP and NADPH, which convert carbon dioxide into sugar!",
-        visualType: "summary_card",
-        canvasData: {
-          bgGradient: ["#050505", "#141414"],
-          mainTitle: "Photosynthesis Summary",
-          elements: [
-            { type: "formula_banner", text: "6CO₂ + 6H₂O + Light → C₆H₁₂O₆ + 6O₂", x: 140, y: 240, color: "#FFFFFF" }
-          ]
-        },
-        bullets: ["Light Reactions in Thylakoid", "Calvin Cycle in Stroma", "Essential for Earth's biosphere"]
+        bullets: [
+          "Thylakoid Membrane: Photolysis splits 2 H₂O → 4 H⁺ + O₂ + 4 e⁻",
+          "Chemiosmotic ATP Synthase rotation generates ATP and NADPH",
+          "Stroma Matrix: RuBisCO enzyme fixes CO₂ into Glucose (C₆H₁₂O₆)"
+        ]
       }
     ],
     quiz: [
       {
-        question: "Where do the light-dependent reactions of photosynthesis occur?",
-        options: ["Stroma", "Thylakoid Membrane", "Mitochondria", "Cell Wall"],
+        question: "Photosynthesis me light-dependent reactions kahan occur hoti hain?",
+        options: ["Stroma Matrix", "Thylakoid Membrane", "Mitochondria", "Cell Wall"],
         correctIndex: 1,
-        explanation: "Light-dependent reactions take place in the thylakoid membrane inside chloroplasts."
+        explanation: "Light-dependent reactions thylakoid membrane ke andar hoti hain jahan chlorophyll pigments embedded hain."
       },
       {
-        question: "What gas is released during the photolysis of water?",
-        options: ["Carbon Dioxide", "Glucose", "Oxygen (O₂)", "Nitrogen"],
-        correctIndex: 2,
-        explanation: "Splitting 2 H₂O molecules releases oxygen gas (O₂) as a vital byproduct."
+        question: "Calvin cycle me carbon fixation kaunsa enzyme catalyze karta hai?",
+        options: ["ATP Synthase", "RuBisCO", "Amylase", "DNA Polymerase"],
+        correctIndex: 1,
+        explanation: "RuBisCO (Ribulose-1,5-bisphosphate carboxylase) carbon dioxide ko fix karta hai."
       }
     ],
     notes: [
-      { title: "Net Chemical Reaction", content: "6 CO₂ + 6 H₂O + Light Energy → C₆H₁₂O₆ + 6 O₂" },
-      { title: "Key Enzymes & Photosystems", content: "PSII (P680) and PSI (P700) drive electron flow to generate ATP and NADPH." }
+      { title: "Net Equation", content: "6 CO₂ + 6 H₂O + Photons → C₆H₁₂O₆ + 6 O₂" },
+      { title: "Key Enzymes & Process", content: "Photosystem II (P680), Photolysis, ATP Synthase, Calvin Cycle (RuBisCO)." }
     ]
   }
 };
 
-async function generateScriptAndVisuals({ topic, gradeLevel, methodology = 'Feynman', language = 'English', style = 'Minimalist', apiKey }) {
+/**
+ * Main Script Generator for Single-Scene Masterclass in Hinglish
+ */
+async function generateScriptAndVisuals({
+  topic,
+  gradeLevel = 'High School',
+  streamDomain = 'STEM / Physical Sciences',
+  apiKey,
+  openaiKey
+}) {
   const cleanTopic = topic.trim();
-  const lowerTopic = cleanTopic.toLowerCase();
-  const styleConfig = STYLES[style] || STYLES.Minimalist;
+  console.log(`[aiOrchestrator] Generating Single-Scene Hinglish Masterclass for: "${cleanTopic}"...`);
 
-  // Check if topic is in base procedural library
-  let baseData = null;
-  const matchKey = Object.keys(BASE_TOPICS).find(k => lowerTopic.includes(k));
-  
-  if (matchKey) {
-    baseData = JSON.parse(JSON.stringify(BASE_TOPICS[matchKey]));
-  } else {
-    // Generate custom procedural structure
-    baseData = {
-      topic: cleanTopic,
-      subject: "AI EdTech Course",
-      gradeLevel: gradeLevel || "Standard",
-      durationSeconds: 40,
-      summary: `Concept breakdown of ${cleanTopic} using ${methodology} methodology.`,
-      scenes: [
-        {
-          id: 1,
-          title: `Introduction: ${cleanTopic}`,
-          duration: 10,
-          narration: `Welcome to heyBuddy! Today we are exploring ${cleanTopic} using the ${methodology} perspective. Let's break down the foundational intuition step by step.`,
-          visualType: "diagram",
-          canvasData: {
-            bgGradient: styleConfig.bgGradient,
-            mainTitle: cleanTopic,
-            elements: [
-              { type: "concept_node", x: 450, y: 250, label: cleanTopic, color: styleConfig.primaryColor, r: 65 },
-              { type: "branch_node", x: 220, y: 180, label: "Core Axiom", color: styleConfig.accentColor },
-              { type: "branch_node", x: 680, y: 180, label: "Key Process", color: styleConfig.primaryColor },
-              { type: "branch_node", x: 450, y: 400, label: "Real Impact", color: styleConfig.accentColor }
-            ]
-          },
-          bullets: [`Core definition of ${cleanTopic}`, "Foundational intuition", "Why this concept matters"]
-        },
-        {
-          id: 2,
-          title: "System Mechanics & Flow",
-          duration: 10,
-          narration: `Examining the inner workings: how variables interact to drive the primary outcome in ${cleanTopic}.`,
-          visualType: "process_flow",
-          canvasData: {
-            bgGradient: styleConfig.bgGradient,
-            mainTitle: "Process Mechanics",
-            elements: [
-              { type: "flow_step", x: 180, y: 270, title: "Input Signal", color: styleConfig.primaryColor },
-              { type: "flow_step", x: 450, y: 270, title: "Transformation", color: styleConfig.accentColor },
-              { type: "flow_step", x: 720, y: 270, title: "Final Output", color: styleConfig.primaryColor }
-            ]
-          },
-          bullets: ["Sequential operation steps", "Conservation of energy/data", "Input-Output relation"]
-        },
-        {
-          id: 3,
-          title: "Deep Dive & Core Principles",
-          duration: 10,
-          narration: `Here is the mathematical and analytical representation powering ${cleanTopic}.`,
-          visualType: "formula_demo",
-          canvasData: {
-            bgGradient: styleConfig.bgGradient,
-            mainTitle: "Mathematical Derivation",
-            elements: [
-              { type: "formula_banner", text: `f(${cleanTopic.slice(0, 8)}) = Σ(Inputs · Weights)`, x: 200, y: 230, color: styleConfig.primaryColor }
-            ]
-          },
-          bullets: ["Analytical breakdown", "Key variables defined", "Exam tips & pitfalls"]
-        },
-        {
-          id: 4,
-          title: "Summary & Takeaways",
-          duration: 10,
-          narration: `In summary, mastering ${cleanTopic} gives you a fundamental tool in your learning journey. Test your knowledge in the quiz tab!`,
-          visualType: "summary_card",
-          canvasData: {
-            bgGradient: styleConfig.bgGradient,
-            mainTitle: "Key Takeaways",
-            elements: [
-              { type: "summary_grid", items: ["1. Remember Core Axiom", "2. Master Step-by-Step Flow", "3. Complete Quiz Questions"] }
-            ]
-          },
-          bullets: ["Primary intuition locked in", "Ready for quiz assessment", "Use AI Chat for doubts"]
-        }
-      ],
-      quiz: [
-        {
-          question: `What is the primary principle behind ${cleanTopic}?`,
-          options: [`It defines the core mechanism of ${cleanTopic}`, "It is an invalid concept", "It requires no inputs", "It only works at absolute zero"],
-          correctIndex: 0,
-          explanation: `${cleanTopic} relies on a structured sequence of transformations to generate outcomes.`
-        }
-      ],
-      notes: [
-        { title: "Core Summary", content: `Essential overview of ${cleanTopic} tailored for ${gradeLevel || 'students'}.` }
-      ]
-    };
-  }
+  // Step 1: Query multi-source deep academic data
+  const academicData = await fetchDeepAcademicContext(cleanTopic, streamDomain);
 
-  // Apply visual style colors across scenes
-  baseData.scenes.forEach(s => {
-    if (s.canvasData) {
-      s.canvasData.bgGradient = styleConfig.bgGradient;
-    }
-  });
+  const academicContextStr = [
+    academicData.openstax ? `[OpenStax]: ${academicData.openstax.title} - ${academicData.openstax.description}` : '',
+    academicData.libretexts ? `[LibreTexts OER]: ${academicData.libretexts.snippet}` : '',
+    academicData.wikidata?.sparqlRelations ? `[Wikidata SPARQL]: ${JSON.stringify(academicData.wikidata.sparqlRelations)}` : '',
+    academicData.wolfram ? `[Wolfram Alpha]: ${academicData.wolfram.result}` : '',
+    academicData.stackexchange ? `[StackExchange]: ${academicData.stackexchange.title}` : ''
+  ].filter(Boolean).join('\n');
 
-  // Call Gemini API if key is available
-  const effectiveKey = apiKey || process.env.GEMINI_API_KEY;
-  if (effectiveKey) {
+  const effectiveOpenAIKey = openaiKey || process.env.OPENAI_API_KEY;
+  const effectiveGeminiKey = apiKey || process.env.GEMINI_API_KEY;
+
+  if (effectiveOpenAIKey || effectiveGeminiKey) {
     try {
-      const prompt = `You are heyBuddy, an expert AI EdTech Video Producer. Generate a structured JSON response for a video explaining "${cleanTopic}" tailored for ${gradeLevel} using teaching methodology: "${METHODOLOGIES[methodology] || methodology}" in Language: "${language}".
-Respond ONLY with valid JSON conforming to this schema:
+      const systemPrompt = `You are heyBuddy, an elite AI EdTech Professor (like Physics Wallah / Vedantu).
+Create ONE SINGLE UNIFIED MASTERCLASS LECTURE SCENE for topic: "${cleanTopic}" at level: "${gradeLevel}" in stream: "${streamDomain}".
+
+CRITICAL INSTRUCTIONS:
+1. Language MUST be conversational HINGLISH (Hindi + English EdTech style). Example: "Aaj ke is masterclass me hum Photosynthesis ko step by step samjhenge...".
+2. Generate EXACTLY 1 single comprehensive scene ("scenes" array with 1 item).
+3. The narration MUST be extremely detailed, deep, and complete (between 120 and 200 words), explaining core intuition, step-by-step logic, mathematical or chemical formulas, real-world examples, and exam tips.
+4. Include 3 rich key takeaway bullets summarizing the entire topic.
+5. Ground your content in these open academic sources:\n${academicContextStr}
+
+Respond ONLY with valid JSON conforming to this schema (no markdown, no backticks):
 {
   "topic": "${cleanTopic}",
-  "subject": "STEM / General",
+  "subject": "${streamDomain}",
   "gradeLevel": "${gradeLevel}",
-  "durationSeconds": 40,
-  "summary": "Summary in ${language}",
+  "streamDomain": "${streamDomain}",
+  "lectureDuration": "Full Masterclass",
+  "language": "Hinglish",
+  "summary": "Complete single-scene masterclass on ${cleanTopic} in conversational Hinglish.",
   "scenes": [
     {
       "id": 1,
-      "title": "Scene 1 Title",
-      "duration": 10,
-      "narration": "Speech script in ${language} explaining the concept using ${methodology} approach.",
-      "bullets": ["Bullet 1 in ${language}", "Bullet 2 in ${language}"]
-    },
-    {
-      "id": 2,
-      "title": "Scene 2 Title",
-      "duration": 10,
-      "narration": "Speech script in ${language} for step 2.",
-      "bullets": ["Bullet 1", "Bullet 2"]
-    },
-    {
-      "id": 3,
-      "title": "Scene 3 Title",
-      "duration": 10,
-      "narration": "Speech script in ${language} for deep dive.",
-      "bullets": ["Bullet 1", "Bullet 2"]
-    },
-    {
-      "id": 4,
-      "title": "Summary Title",
-      "duration": 10,
-      "narration": "Summary script in ${language}.",
-      "bullets": ["Bullet 1", "Bullet 2"]
+      "title": "${cleanTopic} - Complete Unified Breakdown",
+      "duration": 200,
+      "narration": "Detailed 120-200 word Hinglish narration explaining intuition, mechanism, formulas, and takeaways.",
+      "visualType": "masterclass_unified",
+      "bullets": [
+        "Core Foundational Principle of ${cleanTopic}",
+        "Mathematical / Chemical Formula Breakdown",
+        "Key Application & Exam Tip"
+      ]
     }
   ],
   "quiz": [
     {
-      "question": "Question in ${language}?",
-      "options": ["Opt 1", "Opt 2", "Opt 3", "Opt 4"],
+      "question": "Hinglish conceptual question 1?",
+      "options": ["Option A", "Option B", "Option C", "Option D"],
       "correctIndex": 0,
-      "explanation": "Explanation in ${language}"
+      "explanation": "Detailed Hinglish explanation."
     }
   ],
   "notes": [
-    { "title": "Note Title", "content": "Content in ${language}" }
+    { "title": "Masterclass Summary Note", "content": "Comprehensive reference note." }
   ]
 }`;
 
-      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${effectiveKey}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
-      });
-
-      if (res.ok) {
-        const data = await res.json();
-        let textRes = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-        textRes = textRes.replace(/```json/g, '').replace(/```/g, '').trim();
-        const parsed = JSON.parse(textRes);
-
-        if (parsed.scenes && parsed.scenes.length === baseData.scenes.length) {
-          parsed.scenes.forEach((s, idx) => {
-            baseData.scenes[idx].title = s.title;
-            baseData.scenes[idx].narration = s.narration;
-            baseData.scenes[idx].bullets = s.bullets;
-          });
+      let jsonText = null;
+      if (effectiveOpenAIKey) {
+        console.log('[aiOrchestrator] Calling OpenAI GPT-4o for Single-Scene Hinglish Masterclass...');
+        jsonText = await callLLMProvider({
+          prompt: systemPrompt,
+          provider: 'openai',
+          apiKey: effectiveOpenAIKey
+        });
+      } else if (effectiveGeminiKey) {
+        console.log('[aiOrchestrator] Calling Gemini 1.5 Flash for Single-Scene Hinglish Masterclass...');
+        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${effectiveGeminiKey}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ contents: [{ parts: [{ text: systemPrompt }] }] })
+        });
+        if (res.ok) {
+          const data = await res.json();
+          jsonText = data.candidates?.[0]?.content?.parts?.[0]?.text || null;
         }
-        if (parsed.quiz) baseData.quiz = parsed.quiz;
-        if (parsed.notes) baseData.notes = parsed.notes;
       }
-    } catch (e) {
-      console.warn('[aiOrchestrator] Gemini call failed, returning procedural engine result:', e.message);
-    }
-  }
 
-  baseData.methodology = methodology;
-  baseData.language = language;
-  baseData.style = style;
-  return baseData;
-}
+      if (jsonText) {
+        let cleanJson = jsonText.replace(/```json/g, '').replace(/```/g, '').trim();
+        const parsed = JSON.parse(cleanJson);
+        if (parsed.scenes && parsed.scenes.length >= 1) {
+          const mainScene = parsed.scenes[0];
+          mainScene.duration = 200;
+          mainScene.visualType = "masterclass_unified";
+          mainScene.canvasData = {
+            bgGradient: ["#070a14", "#121b2d"],
+            mainTitle: `${cleanTopic} - Complete Concept Map`,
+            elements: [
+              { type: "concept_node", x: 480, y: 220, label: cleanTopic, color: "#6366F1", r: 65 },
+              { type: "branch_node", x: 200, y: 160, label: mainScene.bullets?.[0] || "Foundational Principle", color: "#38BDF8" },
+              { type: "branch_node", x: 760, y: 160, label: mainScene.bullets?.[1] || "Core Transformation", color: "#10B981" },
+              { type: "formula_banner", text: `Formula Model: f(${cleanTopic.slice(0, 8)}) = Σ(Inputs)`, x: 200, y: 350, color: "#818CF8" }
+            ]
+          };
 
-/**
- * On-the-Fly Live Script Translation for current Video
- */
-async function translateScriptOnTheFly({ videoData, targetLanguage, apiKey }) {
-  if (!videoData) return null;
-  const copy = JSON.parse(JSON.stringify(videoData));
-  copy.language = targetLanguage;
-
-  const effectiveKey = apiKey || process.env.GEMINI_API_KEY;
-  if (effectiveKey) {
-    try {
-      const prompt = `Translate the narrations and bullets of this educational script to ${targetLanguage}.
-Respond ONLY with JSON:
-{
-  "scenes": [
-    { "id": 1, "title": "Translated Title", "narration": "Translated Narration", "bullets": ["Translated Bullet 1"] },
-    { "id": 2, "title": "Translated Title", "narration": "Translated Narration", "bullets": ["Translated Bullet 1"] },
-    { "id": 3, "title": "Translated Title", "narration": "Translated Narration", "bullets": ["Translated Bullet 1"] },
-    { "id": 4, "title": "Translated Title", "narration": "Translated Narration", "bullets": ["Translated Bullet 1"] }
-  ]
-}
-Original scenes narrations: ${JSON.stringify(videoData.scenes.map(s => ({ title: s.title, narration: s.narration, bullets: s.bullets })))}`;
-
-      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${effectiveKey}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
-      });
-
-      if (res.ok) {
-        const data = await res.json();
-        let textRes = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-        textRes = textRes.replace(/```json/g, '').replace(/```/g, '').trim();
-        const parsed = JSON.parse(textRes);
-        if (parsed.scenes && parsed.scenes.length === copy.scenes.length) {
-          parsed.scenes.forEach((s, idx) => {
-            copy.scenes[idx].title = s.title;
-            copy.scenes[idx].narration = s.narration;
-            copy.scenes[idx].bullets = s.bullets;
-          });
-          return copy;
+          return {
+            topic: cleanTopic,
+            subject: streamDomain,
+            gradeLevel,
+            streamDomain,
+            lectureDuration: "Full Masterclass",
+            language: "Hinglish",
+            durationSeconds: 200,
+            summary: parsed.summary || `Single-scene Hinglish masterclass on "${cleanTopic}".`,
+            academicSources: academicData,
+            scenes: [mainScene],
+            quiz: parsed.quiz || [],
+            notes: parsed.notes || [],
+            methodology: "Feynman (Hinglish)",
+            style: "Minimalist"
+          };
         }
       }
     } catch (err) {
-      console.warn('[aiOrchestrator] On-the-fly translation error:', err.message);
+      console.warn('[aiOrchestrator] LLM Hinglish generation fallback:', err.message);
     }
   }
 
-  // Fallback translation tag
-  copy.scenes.forEach(s => {
-    s.narration = `[${targetLanguage}] ` + s.narration;
-  });
-  return copy;
+  // Fallback: Procedural Single-Scene Hinglish Masterclass
+  const lowerTopic = cleanTopic.toLowerCase();
+  const matchKey = Object.keys(BASE_TOPICS).find(k => lowerTopic.includes(k));
+  if (matchKey) {
+    return JSON.parse(JSON.stringify(BASE_TOPICS[matchKey]));
+  }
+
+  return {
+    topic: cleanTopic,
+    subject: streamDomain,
+    gradeLevel,
+    streamDomain,
+    lectureDuration: "Full Masterclass",
+    language: "Hinglish",
+    durationSeconds: 200,
+    summary: `Complete single-scene Hinglish masterclass on "${cleanTopic}".`,
+    academicSources: academicData,
+    scenes: [
+      {
+        id: 1,
+        title: `${cleanTopic} Complete Unified Breakdown`,
+        duration: 200,
+        narration: `Welcome to heyBuddy AI Masterclass! Aaj hum ${cleanTopic} ko bilkul zero level se samjhenge. Tailored for ${gradeLevel} students in ${streamDomain}, ye concept batata hai ki kaise inputs step-by-step reaction dwara target result me convert hote hain. OpenStax aur Wikidata knowledge graph ke according is system ke mathematical aur physical principles ko samjhna bahut important hai. Diagram me diye gaye har component ko dhyan se padhiye aur exam point of view se key formulas ko note kijiye!`,
+        visualType: "masterclass_unified",
+        canvasData: {
+          bgGradient: ["#070a14", "#121b2d"],
+          mainTitle: `${cleanTopic} - Masterclass Concept Map`,
+          elements: [
+            { type: "concept_node", x: 480, y: 220, label: cleanTopic, color: "#6366F1", r: 65 },
+            { type: "branch_node", x: 200, y: 160, label: "Foundational Intuition", color: "#38BDF8" },
+            { type: "branch_node", x: 760, y: 160, label: "System Mechanism", color: "#10B981" },
+            { type: "formula_banner", text: `Core Model: f(${cleanTopic.slice(0, 6)}) = Σ(Variables)`, x: 200, y: 350, color: "#818CF8" }
+          ]
+        },
+        bullets: [
+          `Foundational Intuition & Core Definition of ${cleanTopic}`,
+          `Step-by-Step Workflow & System Transformations`,
+          `Key Exam Derivation & Boundary Condition Tips`
+        ]
+      }
+    ],
+    quiz: [
+      {
+        question: `${cleanTopic} ka main primary core principle kya hai?`,
+        options: [
+          `Ye system me step-by-step transformation ko define karta hai`,
+          "Ye bilkul zero energy consume karta hai",
+          "Ye obsolete model hai",
+          "Ye sirf 1D school level tak restricted hai"
+        ],
+        correctIndex: 0,
+        explanation: `${cleanTopic} systematic inputs aur physical/chemical laws par kaam karta hai.`
+      }
+    ],
+    notes: [
+      { title: "Masterclass Summary", content: `Complete Hinglish breakdown of ${cleanTopic} for ${gradeLevel} students.` }
+    ],
+    methodology: "Feynman (Hinglish)",
+    style: "Minimalist"
+  };
 }
 
 module.exports = {
   generateScriptAndVisuals,
-  translateScriptOnTheFly,
-  METHODOLOGIES,
-  LANGUAGES,
-  STYLES
+  METHODOLOGIES: { Feynman: "Feynman (Hinglish)" },
+  LANGUAGES: { Hinglish: "Hinglish" },
+  STYLES: { Minimalist: { bgGradient: ["#070a14", "#121b2d"], primaryColor: "#6366F1", accentColor: "#38BDF8" } }
 };
