@@ -3,7 +3,10 @@ const router = express.Router();
 const videoController = require('../controllers/videoController');
 const chatController = require('../controllers/chatController');
 
+// Primary & Alias Masterclass Video Generation Endpoints
+router.post('/generate-lecture', videoController.generateVideo);
 router.post('/video/generate', videoController.generateVideo);
+
 router.get('/video/options', videoController.getOptions);
 router.post('/video/render-async', videoController.startAsyncJob);
 router.get('/video/job/:jobId', videoController.getJobStatus);

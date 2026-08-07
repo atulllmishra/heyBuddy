@@ -100,7 +100,7 @@ export default function App() {
       });
 
       const data = await res.json();
-      if (data.success && data.data) {
+      if (res.ok && data.success && data.data) {
         setVideoData(data.data);
         setActiveSceneIndex(0);
         setSceneProgress(0);
@@ -111,7 +111,7 @@ export default function App() {
       }
     } catch (err) {
       console.error('Generation error:', err);
-      alert('Failed to connect to backend server. Make sure node server is running.');
+      alert('Failed to connect to backend server. Make sure node server is running on http://localhost:3000.');
     } finally {
       setLoading(false);
     }
