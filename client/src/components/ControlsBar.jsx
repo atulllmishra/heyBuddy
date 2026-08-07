@@ -1,17 +1,18 @@
 import React from 'react';
+import { Play, Pause, Volume2, VolumeX, Subtitles, Download, Sparkles, Mic } from 'lucide-react';
 
 export default function ControlsBar({
   isPlaying,
   onTogglePlay,
-  progressPercent,
+  progressPercent = 0,
   onSeek,
-  currentTimeStr,
-  totalTimeStr,
-  playbackSpeed,
+  currentTimeStr = '0:00',
+  totalTimeStr = '0:00',
+  playbackSpeed = 1,
   onChangeSpeed,
-  volume,
+  volume = 1,
   onVolumeChange,
-  isMuted,
+  isMuted = false,
   onToggleMute,
   onExportVideo,
   showCaptions = true,
@@ -20,35 +21,41 @@ export default function ControlsBar({
   isHeyGenGenerating = false
 }) {
   return (
-    <div className="player-controls" style={{ background: 'var(--bg-card)', borderColor: 'var(--border-color)', borderRadius: '16px', padding: '0.85rem 1.25rem' }}>
-      {/* Seeker Row */}
-      <div className="timeline-row" style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '0.65rem' }}>
+    <div className="glass-panel p-4 rounded-2xl border border-slate-800 space-y-3">
+      {/* Timeline Slider & Time readout */}
+      <div className="flex items-center gap-3">
         <input
           type="range"
           min="0"
           max="100"
           step="0.1"
           value={progressPercent || 0}
-          onChange={(e) => onSeek(parseFloat(e.target.value))}
-          className="slider-mono"
-          style={{ flex: 1, accentColor: '#FF0000' }}
+          onChange={(e) => onSeek && onSeek(parseFloat(e.target.value))}
+          className="flex-1 h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500"
         />
-        <span className="time-mono" style={{ fontSize: '0.8rem', fontFamily: 'monospace', color: 'var(--text-secondary)' }}>
+        <span className="text-xs font-mono text-slate-400 shrink-0">
           {currentTimeStr} / {totalTimeStr}
         </span>
       </div>
 
-      {/* Action Buttons Row */}
-      <div className="actions-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem' }}>
-        {/* Playback Controls */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-          <button className="ctrl-btn-mono" onClick={onTogglePlay} title={isPlaying ? "Pause Lecture" : "Play Lecture"} style={{ width: '38px', height: '38px', borderRadius: '50%', background: 'linear-gradient(135deg, #6366f1, #4f46e5)', color: '#fff', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            {isPlaying ? <i className="fa-solid fa-pause"></i> : <i className="fa-solid fa-play"></i>}
+      {/* Buttons & Speed Controls Row */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        {/* Left Play/Pause & Volume */}
+        <div className="flex items-center gap-3">
+          <button
+            onClick={onTogglePlay}
+            className="w-10 h-10 rounded-full bg-gradient-to-tr from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white shadow-md shadow-indigo-600/30 flex items-center justify-center transition-transform hover:scale-105"
+            title={isPlaying ? "Pause" : "Play"}
+          >
+            {isPlaying ? <Pause className="w-5 h-5 fill-current" /> : <Play className="w-5 h-5 fill-current ml-0.5" />}
           </button>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginLeft: '0.3rem' }}>
-            <button className="ctrl-btn-mono" onClick={onToggleMute} title={isMuted ? "Unmute" : "Mute"} style={{ background: 'none', border: 'none', color: 'var(--text-primary)', cursor: 'pointer', fontSize: '1rem' }}>
-              {isMuted || volume === 0 ? <i className="fa-solid fa-volume-xmark"></i> : <i className="fa-solid fa-volume-high"></i>}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={onToggleMute}
+              className="text-slate-400 hover:text-white transition-colors"
+            >
+              {isMuted || volume === 0 ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
             </button>
             <input
               type="range"
@@ -56,62 +63,54 @@ export default function ControlsBar({
               max="1"
               step="0.05"
               value={isMuted ? 0 : volume}
-              onChange={(e) => onVolumeChange(parseFloat(e.target.value))}
-              style={{ width: '70px', accentColor: 'var(--accent-indigo)' }}
+              onChange={(e) => onVolumeChange && onVolumeChange(parseFloat(e.target.value))}
+              className="w-16 h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500"
             />
           </div>
 
-          {/* Captions Remove/Toggle Option */}
           <button
-            className={`method-pill ${showCaptions ? 'active' : ''}`}
             onClick={onToggleCaptions}
-            title={showCaptions ? "Hide Captions" : "Show Captions"}
-            style={{ fontSize: '0.78rem', padding: '0.38rem 0.85rem', display: 'flex', alignItems: 'center', gap: '5px' }}
+            className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
+              showCaptions
+                ? 'bg-indigo-600/20 text-indigo-300 border-indigo-500/30'
+                : 'glass-card text-slate-400 border-slate-800'
+            }`}
           >
-            <i className={`fa-solid ${showCaptions ? 'fa-closed-captioning' : 'fa-rectangle-xmark'}`}></i>
-            {showCaptions ? 'CC On' : 'CC Off'}
+            <Subtitles className="w-3.5 h-3.5" /> CC {showCaptions ? 'On' : 'Off'}
           </button>
         </div>
 
-        {/* Clean Streamlined Actions */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', flexWrap: 'wrap' }}>
-          {/* Active Hinglish Voice Badge */}
-          <span className="badge-mono" style={{ background: 'rgba(99,102,241,0.12)', color: '#818cf8', borderColor: 'rgba(99,102,241,0.3)', fontSize: '0.75rem', padding: '0.38rem 0.75rem' }}>
-            <i className="fa-solid fa-microphone-lines" style={{ marginRight: '5px' }}></i> Hinglish Expressive AI Voice
+        {/* Right Speed & Export Actions */}
+        <div className="flex items-center gap-2 overflow-x-auto">
+          <span className="hidden lg:inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-indigo-500/10 text-indigo-300 text-[11px] font-medium border border-indigo-500/20">
+            <Mic className="w-3 h-3" /> Hinglish Voice
           </span>
 
-          {/* HeyGen Virtual Avatar Video Generation Trigger Button */}
-          {onGenerateHeyGenVideo && (
-            <button
-              className="method-pill"
-              style={{ padding: '0.45rem 0.9rem', fontSize: '0.78rem', gap: '6px', background: 'rgba(236,72,153,0.14)', color: '#ec4899', borderColor: 'rgba(236,72,153,0.35)', fontWeight: 600 }}
-              onClick={onGenerateHeyGenVideo}
-              disabled={isHeyGenGenerating}
-              title="Generate Virtual Teacher Video with HeyGen"
-            >
-              {isHeyGenGenerating ? <i className="fa-solid fa-circle-notch fa-spin"></i> : <i className="fa-solid fa-video"></i>}
-              HeyGen Video
-            </button>
-          )}
-
-          {/* Speed Selector */}
-          <div style={{ display: 'flex', gap: '2px', background: 'var(--bg-surface)', padding: '3px', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+          {/* Speed Pills */}
+          <div className="flex items-center p-0.5 rounded-lg bg-slate-900 border border-slate-800">
             {[1, 1.25, 1.5, 2].map((spd) => (
               <button
                 key={spd}
-                className={`method-pill ${playbackSpeed === spd ? 'active' : ''}`}
-                style={{ padding: '3px 8px', fontSize: '0.75rem', border: 'none' }}
-                onClick={() => onChangeSpeed(spd)}
+                onClick={() => onChangeSpeed && onChangeSpeed(spd)}
+                className={`px-2 py-1 rounded-md text-[11px] font-semibold transition-all ${
+                  playbackSpeed === spd
+                    ? 'bg-indigo-600 text-white'
+                    : 'text-slate-400 hover:text-white'
+                }`}
               >
                 {spd}x
               </button>
             ))}
           </div>
 
-          {/* Export Video Button */}
-          <button className="btn-black" style={{ padding: '0.45rem 1rem', fontSize: '0.8rem', background: 'linear-gradient(135deg, #6366f1, #4f46e5)', borderColor: 'transparent', fontWeight: 600 }} onClick={onExportVideo}>
-            <i className="fa-solid fa-download"></i> Export WebM
-          </button>
+          {onExportVideo && (
+            <button
+              onClick={onExportVideo}
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold transition-colors"
+            >
+              <Download className="w-3.5 h-3.5" /> Export
+            </button>
+          )}
         </div>
       </div>
     </div>
