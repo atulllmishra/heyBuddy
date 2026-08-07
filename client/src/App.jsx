@@ -86,7 +86,7 @@ export default function App() {
     stopSpeech();
 
     try {
-      const res = await fetch(`${API_BASE_URL}/api/generate-lecture`, {
+      const res = await fetch(`${API_BASE_URL}/api/video/generate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -111,7 +111,7 @@ export default function App() {
       }
     } catch (err) {
       console.error('Generation error:', err);
-      alert('Failed to connect to backend server. Make sure node server is running on http://localhost:3000.');
+      alert(`Failed to connect to backend server at ${API_BASE_URL}. Ensure backend service is active.`);
     } finally {
       setLoading(false);
     }
