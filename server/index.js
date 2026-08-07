@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const fs = require('fs');
 const apiRoutes = require('./routes/api');
 
 const app = express();
@@ -10,7 +11,6 @@ const PORT = process.env.PORT || 3000;
 // Enable CORS for Vercel Frontend & Localhost
 app.use(cors({
   origin: (origin, callback) => {
-    // Allow any origin or non-browser request
     return callback(null, true);
   },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
@@ -25,17 +25,22 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', service: 'heyBuddy Express API', timestamp: new Date() });
 });
 
-// Root route for standalone backend
-app.get('/', (req, res) => {
-  res.send('⚡ heyBuddy Express API Server is Live & Running on Render.');
-});
-
 // API Routes
 app.use('/api', apiRoutes);
 
-// Fallback route for static client if served together
+// Serve static React client build files if client/dist exists
 const clientDist = path.join(__dirname, '../client/dist');
 app.use(express.static(clientDist));
+
+// Wildcard SPA Fallback route for client app
+app.get('*', (req, res) => {
+  const indexPath = path.join(clientDist, 'index.html');
+  if (fs.existsSync(indexPath)) {
+    res.sendFile(indexPath);
+  } else {
+    res.send('⚡ heyBuddy Express API Server is Live & Running on Render.');
+  }
+});
 
 app.listen(PORT, () => {
   console.log(`\n⚡ heyBuddy Express API Backend running on port ${PORT}`);
