@@ -1,88 +1,62 @@
 import React from 'react';
 
 export default function Header({
-  activeNav,
-  onSelectNav,
+  activeTab,
+  setActiveTab,
   user,
   onOpenAuth,
-  onOpenSettings,
-  onToggleSidebar,
-  searchQuery,
-  onSearchChange,
-  onSearchSubmit
+  onOpenSettings
 }) {
   return (
-    <header className="yt-header">
-      {/* Left: Sidebar Toggle & YouTube Logo */}
-      <div className="yt-header-left">
-        <button className="yt-icon-btn" onClick={onToggleSidebar} title="Toggle Drawer Menu">
-          <i className="fa-solid fa-bars"></i>
-        </button>
-
-        <a href="#home" onClick={(e) => { e.preventDefault(); onSelectNav('home'); }} className="yt-logo">
-          <i className="fa-brands fa-youtube" style={{ color: '#FF0000', fontSize: '1.6rem' }}></i>
-          <span>heyBuddy</span>
-          <span className="yt-logo-badge">AI TUTOR</span>
-        </a>
+    <header className="app-header">
+      <div className="brand-logo" onClick={() => setActiveTab('studio')} style={{ cursor: 'pointer' }}>
+        <div className="brand-icon">
+          <i className="fa-solid fa-graduation-cap"></i>
+        </div>
+        <div>
+          <span style={{ fontWeight: 800 }}>heyBuddy</span>
+          <span style={{ fontSize: '0.68rem', color: 'var(--accent-indigo-light)', display: 'block', fontWeight: 600, letterSpacing: '0.5px' }}>
+            ADAPTIVE AI TUTOR
+          </span>
+        </div>
       </div>
 
-      {/* Center: YouTube Search Bar */}
-      <div className="yt-search-container">
-        <form onSubmit={onSearchSubmit} className="yt-search-box">
-          <input
-            type="text"
-            className="yt-search-input"
-            placeholder="Search any subject or masterclass..."
-            value={searchQuery}
-            onChange={(e) => onSearchChange(e.target.value)}
-          />
-          <button type="submit" className="yt-search-btn" title="Search">
-            <i className="fa-solid fa-magnifying-glass"></i>
-          </button>
-        </form>
-
-        <button className="yt-icon-btn" title="Search with Voice" onClick={() => alert('Speak your topic: e.g. "Explain Photosynthesis"')}>
-          <i className="fa-solid fa-microphone"></i>
+      <nav className="nav-tabs">
+        <button
+          className={`nav-btn ${activeTab === 'studio' ? 'active' : ''}`}
+          onClick={() => setActiveTab('studio')}
+        >
+          <i className="fa-solid fa-wand-magic-sparkles"></i> Lecture Studio
         </button>
-      </div>
-
-      {/* Right: Actions & User Avatar */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-        <button className="yt-icon-btn" onClick={() => onSelectNav('studio')} title="Create Masterclass">
-          <i className="fa-solid fa-video"></i>
+        <button
+          className={`nav-btn ${activeTab === 'library' ? 'active' : ''}`}
+          onClick={() => setActiveTab('library')}
+        >
+          <i className="fa-solid fa-layer-group"></i> Course Library
         </button>
+      </nav>
 
-        <button className="yt-icon-btn" onClick={onOpenSettings} title="Settings">
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <button className="method-pill" onClick={onOpenSettings} title="Settings">
           <i className="fa-solid fa-gear"></i>
         </button>
 
         {user ? (
           <button
             onClick={onOpenAuth}
-            className="yt-avatar"
-            style={{ width: '34px', height: '34px', fontSize: '0.9rem', cursor: 'pointer', border: 'none' }}
+            className="method-pill active"
+            style={{ fontWeight: 700 }}
             title={`${user.name} (${user.academicStream})`}
           >
-            {user.avatarChar || user.name[0].toUpperCase()}
+            👤 {user.name}
           </button>
         ) : (
           <button
             onClick={onOpenAuth}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              background: 'none',
-              border: '1px solid #3ea6ff',
-              color: '#3ea6ff',
-              padding: '0.35rem 0.85rem',
-              borderRadius: '20px',
-              fontWeight: 600,
-              fontSize: '0.85rem',
-              cursor: 'pointer'
-            }}
+            className="btn-black"
+            style={{ padding: '0.45rem 1.25rem', fontSize: '0.85rem' }}
           >
-            <i className="fa-regular fa-circle-user"></i> Sign in
+            <i className="fa-regular fa-circle-user"></i> Sign In
           </button>
         )}
       </div>

@@ -1,23 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import Header from './components/Header';
-import Sidebar from './components/Sidebar';
-import HomeFeed from './components/HomeFeed';
 import Studio from './components/Studio';
 import VideoPlayer from './components/VideoPlayer';
 import ControlsBar from './components/ControlsBar';
 import QuizTab from './components/QuizTab';
 import NotesTab from './components/NotesTab';
 import DoubtChat from './components/DoubtChat';
-import AnalyticsDashboard from './components/AnalyticsDashboard';
+import Library from './components/Library';
 import AuthModal from './components/AuthModal';
 import SettingsModal from './components/SettingsModal';
 import { API_BASE_URL } from './config';
 
 export default function App() {
   // Navigation & UI State
-  const [activeNav, setActiveNav] = useState('home'); // 'home' | 'studio' | 'library' | 'history' | 'analytics'
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [activeTab, setActiveTab] = useState('studio'); // 'studio' | 'library'
 
   // User Auth & Choices State
   const [user, setUser] = useState(null);
@@ -105,7 +101,6 @@ export default function App() {
         setActiveSceneIndex(0);
         setSceneProgress(0);
         setIsPlaying(false);
-        setActiveNav('watch');
       } else {
         alert(`Generation Notice: ${data.error || 'Please try again.'}`);
       }
@@ -115,16 +110,6 @@ export default function App() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleSearchSubmit = (e) => {
-    e.preventDefault();
-    if (!searchQuery.trim()) return;
-    handleGenerate({
-      topic: searchQuery,
-      gradeLevel: user?.rigorLevel || 'College / Undergrad',
-      streamDomain: user?.academicStream || 'STEM / Physical Sciences'
-    });
   };
 
   const handleSeek = (percentage) => {
@@ -182,171 +167,132 @@ export default function App() {
 
   return (
     <div className="app-container">
-      {/* Authentic YouTube Top Navigation Bar */}
+      {/* Top Header Navbar */}
       <Header
-        activeNav={activeNav}
-        onSelectNav={(nav) => { stopSpeech(); setActiveNav(nav); }}
+        activeTab={activeTab}
+        setActiveTab={(tab) => { stopSpeech(); setActiveTab(tab); }}
         user={user}
         onOpenAuth={() => setShowAuthModal(true)}
         onOpenSettings={() => setShowKeyModal(true)}
-        onToggleSidebar={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-        onSearchSubmit={handleSearchSubmit}
       />
 
-      <div className="main-layout">
-        {/* Authentic YouTube Left Collapsible Sidebar */}
-        <Sidebar
-          activeNav={activeNav}
-          onSelectNav={(nav) => { stopSpeech(); setActiveNav(nav); }}
-          isCollapsed={isSidebarCollapsed}
-        />
-
-        {/* Content View Container */}
-        <main
-          className="content-area"
-          style={{ marginLeft: isSidebarCollapsed ? '72px' : '240px' }}
-        >
-          {activeNav === 'home' && (
-            <HomeFeed
-              onSelectVideo={(topic, domain) => handleGenerate({ topic, streamDomain: domain })}
-              onOpenStudio={() => setActiveNav('studio')}
-            />
-          )}
-
-          {activeNav === 'studio' && (
+      <main className="main-wrapper">
+        {activeTab === 'studio' ? (
+          <>
             <Studio onGenerate={handleGenerate} loading={loading} />
-          )}
 
-          {activeNav === 'analytics' && (
-            <AnalyticsDashboard user={user} />
-          )}
-
-          {(activeNav === 'library' || activeNav === 'history' || activeNav === 'subscriptions') && (
-            <div style={{ padding: '1.5rem', background: 'var(--yt-bg-card)', borderRadius: '16px', border: '1px solid var(--yt-border)' }}>
-              <h2 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '0.5rem', color: 'var(--yt-text-primary)' }}>
-                {activeNav === 'library' ? '📚 Your Library & Saved Masterclasses' : activeNav === 'history' ? '🕒 Watch History' : '🔔 Subscriptions'}
-              </h2>
-              <p style={{ fontSize: '0.85rem', color: 'var(--yt-text-secondary)' }}>
-                Access your bookmarked Hinglish lectures, quiz logs, and open data citations.
-              </p>
-              <div style={{ marginTop: '1rem', display: 'flex', gap: '0.5rem' }}>
-                <button className="chip-btn active" onClick={() => setActiveNav('studio')}>
-                  + Generate New Masterclass
-                </button>
-              </div>
-            </div>
-          )}
-
-          {activeNav === 'watch' && videoData && (
-            <div style={{ display: 'grid', gridTemplateColumns: isTheaterMode ? '1fr' : '1fr 360px', gap: '1.5rem' }}>
-              {/* Left Column: YouTube Video Player + Description */}
-              <div>
-                <VideoPlayer
-                  videoData={videoData}
-                  activeSceneIndex={0}
-                  sceneProgress={sceneProgress}
-                  isPlaying={isPlaying}
-                  currentAvatarId={currentAvatarId}
-                  onSelectAvatar={(id) => setCurrentAvatarId(id)}
-                  showCaptions={showCaptions}
-                  codec={codec}
-                  onSelectCodec={setCodec}
-                  quality={quality}
-                  onSelectQuality={setQuality}
-                  isTheaterMode={isTheaterMode}
-                  onToggleTheater={() => setIsTheaterMode(!isTheaterMode)}
-                  onTogglePlay={togglePlay}
-                  onSeek={handleSeek}
-                  getCurrentTime={getCurrentTime}
-                  getTotalDuration={getTotalDuration}
-                  formatTime={formatTime}
-                  onExportVideo={handleExportVideo}
-                />
-
-                <ControlsBar
-                  isPlaying={isPlaying}
-                  onTogglePlay={togglePlay}
-                  progressPercent={(getCurrentTime() / getTotalDuration()) * 100}
-                  onSeek={handleSeek}
-                  currentTimeStr={formatTime(getCurrentTime())}
-                  totalTimeStr={formatTime(getTotalDuration())}
-                  playbackSpeed={playbackSpeed}
-                  onChangeSpeed={setPlaybackSpeed}
-                  volume={volume}
-                  onVolumeChange={setVolume}
-                  isMuted={isMuted}
-                  onToggleMute={() => setIsMuted(!isMuted)}
-                  onExportVideo={handleExportVideo}
-                  showCaptions={showCaptions}
-                  onToggleCaptions={() => setShowCaptions(!showCaptions)}
-                  onGenerateHeyGenVideo={handleGenerateHeyGenVideo}
-                  isHeyGenGenerating={isHeyGenGenerating}
-                />
-              </div>
-
-              {/* Right Column: YouTube Up Next Sidebar + Interactive Tabs */}
-              {!isTheaterMode && (
-                <div style={{ background: 'var(--yt-bg-card)', border: '1px solid var(--yt-border)', borderRadius: '16px', padding: '1rem' }}>
-                  <div style={{ display: 'flex', borderBottom: '1px solid var(--yt-border)', marginBottom: '1rem' }}>
-                    <button
-                      className={`chip-btn ${activeSideTab === 'scenes' ? 'active' : ''}`}
-                      style={{ borderRadius: 0, border: 'none', borderBottom: activeSideTab === 'scenes' ? '2px solid var(--yt-blue)' : 'none', flex: 1 }}
-                      onClick={() => setActiveSideTab('scenes')}
-                    >
-                      Up Next
-                    </button>
-                    <button
-                      className={`chip-btn ${activeSideTab === 'quiz' ? 'active' : ''}`}
-                      style={{ borderRadius: 0, border: 'none', borderBottom: activeSideTab === 'quiz' ? '2px solid var(--yt-blue)' : 'none', flex: 1 }}
-                      onClick={() => setActiveSideTab('quiz')}
-                    >
-                      Quiz
-                    </button>
-                    <button
-                      className={`chip-btn ${activeSideTab === 'notes' ? 'active' : ''}`}
-                      style={{ borderRadius: 0, border: 'none', borderBottom: activeSideTab === 'notes' ? '2px solid var(--yt-blue)' : 'none', flex: 1 }}
-                      onClick={() => setActiveSideTab('notes')}
-                    >
-                      Notes
-                    </button>
-                    <button
-                      className={`chip-btn ${activeSideTab === 'chat' ? 'active' : ''}`}
-                      style={{ borderRadius: 0, border: 'none', borderBottom: activeSideTab === 'chat' ? '2px solid var(--yt-blue)' : 'none', flex: 1 }}
-                      onClick={() => setActiveSideTab('chat')}
-                    >
-                      Ask AI
-                    </button>
+            {videoData && (
+              <div style={{ display: 'grid', gridTemplateColumns: isTheaterMode ? '1fr' : '1fr 340px', gap: '1.5rem', marginTop: '1.5rem' }}>
+                {/* Main Video Player Container */}
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+                    <h2 style={{ fontSize: '1.25rem', fontWeight: 700, margin: 0, color: 'var(--text-primary)' }}>
+                      {videoData.topic}
+                    </h2>
+                    <span className="badge-mono">
+                      {videoData.streamDomain || 'STEM'} • {videoData.gradeLevel || 'Standard'}
+                    </span>
                   </div>
 
-                  {activeSideTab === 'scenes' && (
-                    <div>
-                      <div style={{ fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.75rem', color: 'var(--yt-text-primary)' }}>
-                        ▶ Currently Playing Masterclass
-                      </div>
-                      <div style={{ background: '#121212', border: '1px solid var(--yt-border)', borderRadius: '10px', padding: '0.75rem' }}>
-                        <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--yt-blue)', marginBottom: '4px' }}>
-                          1. {videoData.topic}
-                        </div>
-                        <div style={{ fontSize: '0.75rem', color: 'var(--yt-text-secondary)' }}>
-                          Hinglish Masterclass • {formatTime(getTotalDuration())}
-                        </div>
-                      </div>
-                    </div>
-                  )}
+                  <VideoPlayer
+                    videoData={videoData}
+                    activeSceneIndex={0}
+                    sceneProgress={sceneProgress}
+                    isPlaying={isPlaying}
+                    currentAvatarId={currentAvatarId}
+                    onSelectAvatar={(id) => setCurrentAvatarId(id)}
+                    showCaptions={showCaptions}
+                    codec={codec}
+                    onSelectCodec={setCodec}
+                    quality={quality}
+                    onSelectQuality={setQuality}
+                    isTheaterMode={isTheaterMode}
+                    onToggleTheater={() => setIsTheaterMode(!isTheaterMode)}
+                  />
 
-                  {activeSideTab === 'quiz' && <QuizTab quizItems={videoData.quiz || []} />}
-                  {activeSideTab === 'notes' && <NotesTab topic={videoData.topic} notesItems={videoData.notes || []} scenes={videoData.scenes} />}
-                  {activeSideTab === 'chat' && <DoubtChat topic={videoData.topic} timestamp={formatTime(getCurrentTime())} apiKey={localStorage.getItem('heybuddy_gemini_key') || ''} />}
+                  <ControlsBar
+                    isPlaying={isPlaying}
+                    onTogglePlay={togglePlay}
+                    progressPercent={(getCurrentTime() / getTotalDuration()) * 100}
+                    onSeek={handleSeek}
+                    currentTimeStr={formatTime(getCurrentTime())}
+                    totalTimeStr={formatTime(getTotalDuration())}
+                    playbackSpeed={playbackSpeed}
+                    onChangeSpeed={setPlaybackSpeed}
+                    volume={volume}
+                    onVolumeChange={setVolume}
+                    isMuted={isMuted}
+                    onToggleMute={() => setIsMuted(!isMuted)}
+                    onExportVideo={handleExportVideo}
+                    showCaptions={showCaptions}
+                    onToggleCaptions={() => setShowCaptions(!showCaptions)}
+                    onGenerateHeyGenVideo={handleGenerateHeyGenVideo}
+                    isHeyGenGenerating={isHeyGenGenerating}
+                  />
                 </div>
-              )}
-            </div>
-          )}
-        </main>
-      </div>
 
-      {/* User Auth & Choices Preferences Modal */}
+                {/* Right Interactive Tabs */}
+                {!isTheaterMode && (
+                  <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: '16px', padding: '1rem' }}>
+                    <div style={{ display: 'flex', borderBottom: '1px solid var(--border-color)', marginBottom: '1rem' }}>
+                      <button
+                        className={`method-pill ${activeSideTab === 'scenes' ? 'active' : ''}`}
+                        style={{ borderRadius: 0, border: 'none', borderBottom: activeSideTab === 'scenes' ? '2px solid var(--accent-indigo)' : 'none', flex: 1 }}
+                        onClick={() => setActiveSideTab('scenes')}
+                      >
+                        Overview
+                      </button>
+                      <button
+                        className={`method-pill ${activeSideTab === 'quiz' ? 'active' : ''}`}
+                        style={{ borderRadius: 0, border: 'none', borderBottom: activeSideTab === 'quiz' ? '2px solid var(--accent-indigo)' : 'none', flex: 1 }}
+                        onClick={() => setActiveSideTab('quiz')}
+                      >
+                        Quiz
+                      </button>
+                      <button
+                        className={`method-pill ${activeSideTab === 'notes' ? 'active' : ''}`}
+                        style={{ borderRadius: 0, border: 'none', borderBottom: activeSideTab === 'notes' ? '2px solid var(--accent-indigo)' : 'none', flex: 1 }}
+                        onClick={() => setActiveSideTab('notes')}
+                      >
+                        Notes
+                      </button>
+                      <button
+                        className={`method-pill ${activeSideTab === 'chat' ? 'active' : ''}`}
+                        style={{ borderRadius: 0, border: 'none', borderBottom: activeSideTab === 'chat' ? '2px solid var(--accent-indigo)' : 'none', flex: 1 }}
+                        onClick={() => setActiveSideTab('chat')}
+                      >
+                        Ask AI
+                      </button>
+                    </div>
+
+                    {activeSideTab === 'scenes' && (
+                      <div>
+                        <h4 style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '6px' }}>
+                          Masterclass Overview
+                        </h4>
+                        <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                          {videoData.summary || `Single-scene Hinglish masterclass on ${videoData.topic}.`}
+                        </p>
+                      </div>
+                    )}
+
+                    {activeSideTab === 'quiz' && <QuizTab quizItems={videoData.quiz || []} />}
+                    {activeSideTab === 'notes' && <NotesTab topic={videoData.topic} notesItems={videoData.notes || []} scenes={videoData.scenes} />}
+                    {activeSideTab === 'chat' && <DoubtChat topic={videoData.topic} timestamp={formatTime(getCurrentTime())} apiKey={localStorage.getItem('heybuddy_gemini_key') || ''} />}
+                  </div>
+                )}
+              </div>
+            )}
+          </>
+        ) : (
+          <Library onSelectTopic={(topic, domain) => {
+            setActiveTab('studio');
+            handleGenerate({ topic, streamDomain: domain });
+          }} />
+        )}
+      </main>
+
+      {/* User Auth & Choices Modal */}
       <AuthModal
         isOpen={showAuthModal}
         onClose={() => setShowAuthModal(false)}
