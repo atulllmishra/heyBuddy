@@ -42,7 +42,7 @@ app.get('/{*path}', (req, res) => {
   }
 });
 
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`\n⚡ heyBuddy Express API Backend running on port ${PORT}`);
 });
 
