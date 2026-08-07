@@ -33,7 +33,7 @@ const clientDist = path.join(__dirname, '../client/dist');
 app.use(express.static(clientDist));
 
 // Wildcard SPA Fallback route for client app
-app.get('*', (req, res) => {
+app.get('/{*path}', (req, res) => {
   const indexPath = path.join(clientDist, 'index.html');
   if (fs.existsSync(indexPath)) {
     res.sendFile(indexPath);
