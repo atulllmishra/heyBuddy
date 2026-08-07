@@ -1,5 +1,5 @@
 import React from 'react';
-import { Menu, Search, Mic, Video, Settings, User, Sparkles, Sliders } from 'lucide-react';
+import { Menu, Search, Mic, Video, Settings, User, Bell } from 'lucide-react';
 
 export default function Header({
   activeNav,
@@ -13,13 +13,13 @@ export default function Header({
   onSearchSubmit
 }) {
   return (
-    <header className="sticky top-0 z-50 h-16 bg-[#0B0F19]/90 backdrop-blur-md border-b border-slate-800/80 px-4 md:px-6 flex items-center justify-between gap-4">
-      {/* Left: Menu Toggle & Logo */}
-      <div className="flex items-center gap-3">
+    <header className="sticky top-0 z-50 h-14 bg-[#0f0f0f] border-b border-[#272727] px-4 flex items-center justify-between gap-4">
+      {/* Left: Menu Toggle & YouTube Style Brand Logo */}
+      <div className="flex items-center gap-4">
         <button
           onClick={onToggleSidebar}
-          className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
-          title="Toggle Navigation Menu"
+          className="p-2 rounded-full text-white hover:bg-[#272727] transition-colors"
+          title="Toggle Drawer"
         >
           <Menu className="w-5 h-5" />
         </button>
@@ -27,31 +27,33 @@ export default function Header({
         <a
           href="#home"
           onClick={(e) => { e.preventDefault(); onSelectNav('home'); }}
-          className="flex items-center gap-2.5 group"
+          className="flex items-center gap-1.5 group"
         >
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 via-purple-600 to-pink-500 flex items-center justify-center text-white shadow-md shadow-indigo-600/30 group-hover:scale-105 transition-transform">
-            <Sparkles className="w-5 h-5 fill-current" />
+          {/* YouTube Signature Red Icon */}
+          <div className="w-7 h-5 bg-[#ff0000] rounded-lg flex items-center justify-center text-white shadow-sm">
+            <div className="w-0 h-0 border-y-[4px] border-y-transparent border-l-[7px] border-l-white ml-0.5" />
           </div>
-          <div className="flex flex-col">
-            <span className="font-extrabold text-lg tracking-tight text-white leading-none">heyBuddy</span>
-            <span className="text-[10px] font-bold tracking-widest text-indigo-400 uppercase">AI EDTECH</span>
+          <div className="flex items-center gap-1">
+            <span className="font-extrabold text-lg tracking-tighter text-white">heyBuddy</span>
+            <span className="text-[10px] font-bold text-[#aaa] uppercase tracking-widest ml-0.5">EDTECH</span>
           </div>
         </a>
       </div>
 
-      {/* Center: Search Bar */}
-      <div className="flex-1 max-w-xl hidden md:flex items-center gap-2">
-        <form onSubmit={onSearchSubmit} className="relative flex-1 flex items-center">
+      {/* Center: YouTube Signature Pill Search Bar & Mic Button */}
+      <div className="flex-1 max-w-2xl hidden md:flex items-center justify-center gap-3">
+        <form onSubmit={onSearchSubmit} className="flex items-center flex-1 max-w-xl">
           <input
             type="text"
-            placeholder="Search any subject or AI masterclass..."
+            placeholder="Search academic topics or masterclasses..."
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
-            className="w-full pl-4 pr-10 py-2 rounded-xl glass-input text-white text-sm placeholder-slate-400"
+            className="w-full h-10 px-4 rounded-l-full bg-[#121212] border border-[#303030] focus:border-[#3ea6ff] text-white text-sm placeholder-[#888] outline-none"
           />
           <button
             type="submit"
-            className="absolute right-2 p-1.5 text-slate-400 hover:text-white transition-colors"
+            className="h-10 px-6 bg-[#222222] border border-l-0 border-[#303030] rounded-r-full text-slate-300 hover:bg-[#303030] transition-colors flex items-center justify-center"
+            title="Search"
           >
             <Search className="w-4 h-4" />
           </button>
@@ -59,28 +61,28 @@ export default function Header({
 
         <button
           type="button"
-          onClick={() => alert('Voice search ready: speak your topic!')}
-          className="p-2 rounded-xl glass-card text-slate-400 hover:text-white border border-slate-800 transition-colors"
-          title="Voice Search"
+          onClick={() => alert('Speak any topic: e.g. "Photosynthesis and Light Reactions"')}
+          className="w-10 h-10 rounded-full bg-[#222222] hover:bg-[#303030] border border-[#303030] text-white flex items-center justify-center transition-colors"
+          title="Search with voice"
         >
           <Mic className="w-4 h-4" />
         </button>
       </div>
 
-      {/* Right: Actions & Profile */}
+      {/* Right: Actions & User Avatar */}
       <div className="flex items-center gap-2">
         <button
           onClick={() => onSelectNav('studio')}
-          className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-indigo-600/20 text-indigo-300 hover:bg-indigo-600/30 border border-indigo-500/30 text-xs font-semibold transition-colors"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#272727] hover:bg-[#3f3f3f] text-white text-xs font-semibold border border-[#383838] transition-colors"
           title="Create Masterclass"
         >
-          <Sliders className="w-4 h-4 text-indigo-400" />
-          <span className="hidden sm:inline">Studio</span>
+          <Video className="w-4 h-4 text-[#ff0000]" />
+          <span className="hidden sm:inline">Create</span>
         </button>
 
         <button
           onClick={onOpenSettings}
-          className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+          className="p-2 rounded-full text-slate-300 hover:bg-[#272727] transition-colors"
           title="Settings"
         >
           <Settings className="w-5 h-5" />
@@ -89,17 +91,17 @@ export default function Header({
         {user ? (
           <button
             onClick={onOpenAuth}
-            className="w-9 h-9 rounded-xl bg-gradient-to-tr from-purple-600 to-indigo-600 text-white font-bold text-sm flex items-center justify-center shadow-md border border-purple-400/30 hover:scale-105 transition-transform"
-            title={`${user.name} (${user.academicStream})`}
+            className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#ff0000] to-purple-600 text-white font-bold text-xs flex items-center justify-center shadow-sm hover:scale-105 transition-transform"
+            title={`${user.name}`}
           >
             {user.avatarChar || user.name[0].toUpperCase()}
           </button>
         ) : (
           <button
             onClick={onOpenAuth}
-            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl border border-indigo-500/40 text-indigo-300 hover:bg-indigo-500/10 text-xs font-semibold transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1 rounded-full border border-[#3ea6ff] text-[#3ea6ff] hover:bg-[#3ea6ff]/10 text-xs font-semibold transition-colors"
           >
-            <User className="w-4 h-4" /> Sign In
+            <User className="w-4 h-4" /> Sign in
           </button>
         )}
       </div>

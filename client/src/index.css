@@ -4,56 +4,63 @@
 
 @layer base {
   body {
-    @apply bg-[#0B0F19] text-slate-100 font-sans antialiased selection:bg-indigo-500 selection:text-white min-h-screen overflow-x-hidden;
+    @apply bg-[#0f0f0f] text-[#f1f1f1] font-sans antialiased selection:bg-red-600 selection:text-white min-h-screen overflow-x-hidden;
   }
 }
 
-/* Glassmorphism & Custom Accent Styles */
-.glass-panel {
-  background: rgba(17, 24, 39, 0.7);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+/* Authentic YouTube Dark Theme UI Components */
+.yt-panel {
+  background-color: #181818;
+  border: 1px solid #272727;
 }
 
-.glass-card {
-  background: rgba(31, 41, 55, 0.6);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.07);
+.yt-card-bg {
+  background-color: #212121;
+  border: 1px solid #303030;
 }
 
-.glass-input {
-  background: rgba(15, 23, 42, 0.8);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  @apply transition-all duration-200 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500;
+.yt-pill-btn {
+  background-color: #272727;
+  color: #f1f1f1;
+  @apply transition-colors duration-150 hover:bg-[#3f3f3f];
 }
 
-/* Custom Scrollbars */
+.yt-pill-active {
+  background-color: #f1f1f1;
+  color: #0f0f0f;
+  @apply font-bold;
+}
+
+.yt-search-bar {
+  background-color: #121212;
+  border: 1px solid #303030;
+}
+
+/* Custom Scrollbars in YouTube Dark Style */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: rgba(15, 23, 42, 0.5);
+  background: #0f0f0f;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(75, 85, 99, 0.5);
+  background: #373737;
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(107, 114, 128, 0.8);
+  background: #555555;
 }
 
-/* Pulse Glow Keyframe */
-@keyframes subtleGlow {
-  0%, 100% { opacity: 0.4; }
-  50% { opacity: 0.8; }
+/* YouTube Scrubber Keyframe Animation */
+@keyframes ytPulse {
+  0%, 100% { opacity: 0.8; }
+  50% { opacity: 1; }
 }
 
-.animate-glow {
-  animation: subtleGlow 4s infinite ease-in-out;
+.animate-yt-pulse {
+  animation: ytPulse 2s infinite ease-in-out;
 }

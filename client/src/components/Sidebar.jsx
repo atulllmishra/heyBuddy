@@ -1,10 +1,10 @@
 import React from 'react';
-import { Home, Sliders, Bookmark, History, TrendingUp, Atom, Cpu, Dna, Settings } from 'lucide-react';
+import { Home, Video, Bookmark, History, TrendingUp, Settings, BookOpen, Compass, Layers } from 'lucide-react';
 
 export default function Sidebar({ activeNav = 'home', onSelectNav, isCollapsed }) {
   const mainNavItems = [
-    { id: 'home', label: 'Explore Home', icon: Home },
-    { id: 'studio', label: 'AI Studio', icon: Sliders },
+    { id: 'home', label: 'Home', icon: Home },
+    { id: 'studio', label: 'Studio Generator', icon: Video },
   ];
 
   const libraryNavItems = [
@@ -16,12 +16,12 @@ export default function Sidebar({ activeNav = 'home', onSelectNav, isCollapsed }
 
   return (
     <aside
-      className={`sticky top-16 h-[calc(100vh-4rem)] bg-[#0B0F19]/95 border-r border-slate-800/80 p-3 transition-all duration-300 flex flex-col justify-between overflow-y-auto shrink-0 ${
-        isCollapsed ? 'w-16' : 'w-60'
+      className={`sticky top-14 h-[calc(100vh-3.5rem)] bg-[#0f0f0f] border-r border-[#272727] p-2 transition-all duration-200 flex flex-col justify-between overflow-y-auto shrink-0 ${
+        isCollapsed ? 'w-16' : 'w-56'
       }`}
     >
-      <div className="space-y-6">
-        {/* Main Navigation Section */}
+      <div className="space-y-4">
+        {/* Main Section */}
         <div className="space-y-1">
           {mainNavItems.map((item) => {
             const Icon = item.icon;
@@ -30,27 +30,27 @@ export default function Sidebar({ activeNav = 'home', onSelectNav, isCollapsed }
               <button
                 key={item.id}
                 onClick={() => onSelectNav(item.id)}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all ${
+                className={`w-full flex items-center gap-4 px-3 py-2.5 rounded-xl text-xs font-semibold transition-colors ${
                   isActive
-                    ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
-                    : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+                    ? 'bg-[#272727] text-white font-bold'
+                    : 'text-[#f1f1f1] hover:bg-[#272727]/60'
                 }`}
                 title={item.label}
               >
-                <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-white' : 'text-slate-400'}`} />
+                <Icon className={`w-5 h-5 shrink-0 ${isActive ? 'text-[#ff0000]' : 'text-slate-300'}`} />
                 {!isCollapsed && <span>{item.label}</span>}
               </button>
             );
           })}
         </div>
 
-        <div className="h-px bg-slate-800/80 mx-2" />
+        <div className="h-px bg-[#272727] mx-2" />
 
-        {/* Library & Stats Section */}
+        {/* You / Library Section */}
         <div className="space-y-1">
           {!isCollapsed && (
-            <div className="px-3 text-[10px] font-bold tracking-widest text-slate-500 uppercase mb-2">
-              MY LEARNING
+            <div className="px-3 text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">
+              You
             </div>
           )}
           {libraryNavItems.map((item) => {
@@ -60,48 +60,40 @@ export default function Sidebar({ activeNav = 'home', onSelectNav, isCollapsed }
               <button
                 key={item.id}
                 onClick={() => onSelectNav(item.id)}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all ${
+                className={`w-full flex items-center gap-4 px-3 py-2.5 rounded-xl text-xs font-semibold transition-colors ${
                   isActive
-                    ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
-                    : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+                    ? 'bg-[#272727] text-white font-bold'
+                    : 'text-[#f1f1f1] hover:bg-[#272727]/60'
                 }`}
                 title={item.label}
               >
-                <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-white' : 'text-slate-400'}`} />
+                <Icon className={`w-5 h-5 shrink-0 ${isActive ? 'text-[#ff0000]' : 'text-slate-300'}`} />
                 {!isCollapsed && <span>{item.label}</span>}
               </button>
             );
           })}
         </div>
 
-        {/* Explore Streams */}
         {!isCollapsed && (
           <>
-            <div className="h-px bg-slate-800/80 mx-2" />
+            <div className="h-px bg-[#272727] mx-2" />
             <div className="space-y-1">
-              <div className="px-3 text-[10px] font-bold tracking-widest text-slate-500 uppercase mb-2">
-                EXPLORE DOMAINS
+              <div className="px-3 text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">
+                Explore Domains
               </div>
               <button
                 onClick={() => onSelectNav('home')}
-                className="w-full flex items-center gap-3 px-3 py-2 text-xs font-medium text-slate-400 hover:text-indigo-300 hover:bg-slate-800/40 rounded-xl transition-colors"
+                className="w-full flex items-center gap-4 px-3 py-2 text-xs text-slate-300 hover:bg-[#272727] rounded-xl transition-colors"
               >
-                <Atom className="w-4 h-4 text-indigo-400" />
+                <Compass className="w-5 h-5 text-indigo-400" />
                 <span>STEM & Physics</span>
               </button>
               <button
                 onClick={() => onSelectNav('home')}
-                className="w-full flex items-center gap-3 px-3 py-2 text-xs font-medium text-slate-400 hover:text-sky-300 hover:bg-slate-800/40 rounded-xl transition-colors"
+                className="w-full flex items-center gap-4 px-3 py-2 text-xs text-slate-300 hover:bg-[#272727] rounded-xl transition-colors"
               >
-                <Cpu className="w-4 h-4 text-sky-400" />
-                <span>Computer Science</span>
-              </button>
-              <button
-                onClick={() => onSelectNav('home')}
-                className="w-full flex items-center gap-3 px-3 py-2 text-xs font-medium text-slate-400 hover:text-emerald-300 hover:bg-slate-800/40 rounded-xl transition-colors"
-              >
-                <Dna className="w-4 h-4 text-emerald-400" />
-                <span>Medical Sciences</span>
+                <Layers className="w-5 h-5 text-emerald-400" />
+                <span>Life Sciences</span>
               </button>
             </div>
           </>
