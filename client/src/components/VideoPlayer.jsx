@@ -354,103 +354,91 @@ export default function VideoPlayer({
         </div>
       )}
 
-      {/* YouTube Channel Meta Bar below Player */}
-      <div style={{ marginTop: '1rem', background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: '16px', padding: '1rem 1.25rem', boxShadow: 'var(--shadow-sm)' }}>
-        <h1 style={{ fontSize: '1.25rem', fontWeight: 700, margin: '0 0 0.75rem 0', color: 'var(--text-primary)' }}>
+      {/* Channel Meta Bar below Player */}
+      <div className="mt-4 glass-panel p-5 rounded-2xl border border-slate-800 space-y-4">
+        <h1 className="text-xl md:text-2xl font-extrabold text-white">
           {videoData.topic}
         </h1>
 
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <div style={{ width: '42px', height: '42px', borderRadius: '50%', background: 'linear-gradient(135deg, #6366f1, #10b981)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 700, fontSize: '1.1rem' }}>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-11 h-11 rounded-full bg-gradient-to-tr from-indigo-600 to-purple-600 flex items-center justify-center text-white text-lg font-bold shadow-md">
               🎓
             </div>
             <div>
-              <div style={{ fontSize: '0.92rem', fontWeight: 700, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '5px' }}>
+              <div className="text-sm font-bold text-white flex items-center gap-1.5">
                 heyBuddy Hinglish AI Professor
-                <i className="fa-solid fa-circle-check" style={{ color: '#38bdf8', fontSize: '0.85rem' }} title="Verified EdTech Channel"></i>
+                <span className="w-4 h-4 rounded-full bg-sky-500/20 text-sky-400 flex items-center justify-center text-[10px] font-bold">✓</span>
               </div>
-              <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>1.4M Subscribers</div>
+              <div className="text-xs text-slate-400">1.4M Subscribers</div>
             </div>
 
             <button
               onClick={() => setSubscribed(!subscribed)}
-              style={{
-                marginLeft: '0.5rem',
-                padding: '0.45rem 1rem',
-                borderRadius: '20px',
-                border: 'none',
-                fontWeight: 700,
-                fontSize: '0.82rem',
-                cursor: 'pointer',
-                background: subscribed ? 'rgba(255,255,255,0.1)' : '#F8FAFC',
-                color: subscribed ? 'var(--text-secondary)' : '#0F172A'
-              }}
+              className={`ml-2 px-4 py-2 rounded-full text-xs font-bold transition-all ${
+                subscribed
+                  ? 'bg-slate-800 text-slate-300 border border-slate-700'
+                  : 'bg-white text-slate-950 hover:bg-slate-200'
+              }`}
             >
               {subscribed ? 'Subscribed ✓' : 'Subscribe'}
             </button>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-            <div style={{ display: 'flex', background: 'rgba(255,255,255,0.06)', borderRadius: '20px', border: '1px solid var(--border-color)', overflow: 'hidden' }}>
+          <div className="flex items-center gap-2 flex-wrap">
+            <div className="inline-flex items-center rounded-full glass-card border border-slate-800 overflow-hidden text-xs text-slate-200">
               <button
                 onClick={() => { setLiked(!liked); setLikeCount(prev => liked ? prev - 1 : prev + 1); }}
-                style={{ padding: '0.45rem 0.85rem', background: 'none', border: 'none', color: liked ? '#38bdf8' : 'var(--text-primary)', cursor: 'pointer', fontSize: '0.82rem', display: 'flex', alignItems: 'center', gap: '5px' }}
+                className={`px-3.5 py-2 hover:bg-slate-800 transition-colors flex items-center gap-1.5 ${liked ? 'text-sky-400 font-bold' : ''}`}
               >
-                <i className={`fa-${liked ? 'solid' : 'regular'} fa-thumbs-up`}></i> {(likeCount).toLocaleString()}
+                👍 {likeCount.toLocaleString()}
               </button>
-              <div style={{ width: '1px', background: 'rgba(255,255,255,0.1)', margin: '6px 0' }}></div>
-              <button
-                style={{ padding: '0.45rem 0.75rem', background: 'none', border: 'none', color: 'var(--text-primary)', cursor: 'pointer', fontSize: '0.82rem' }}
-              >
-                <i className="fa-regular fa-thumbs-down"></i>
+              <div className="w-px h-4 bg-slate-800" />
+              <button className="px-3 py-2 hover:bg-slate-800 transition-colors">
+                👎
               </button>
             </div>
 
             <button
-              className="method-pill"
               onClick={() => { navigator.clipboard.writeText(window.location.href); alert('Video link copied to clipboard!'); }}
-              style={{ fontSize: '0.8rem', padding: '0.45rem 0.85rem', borderRadius: '20px' }}
+              className="px-4 py-2 rounded-full glass-card hover:bg-slate-800 border border-slate-800 text-xs font-semibold text-slate-300 hover:text-white transition-colors"
             >
-              <i className="fa-solid fa-share"></i> Share
+              Share
             </button>
 
             <button
-              className="method-pill"
               onClick={onExportVideo}
-              style={{ fontSize: '0.8rem', padding: '0.45rem 0.85rem', borderRadius: '20px' }}
+              className="px-4 py-2 rounded-full glass-card hover:bg-slate-800 border border-slate-800 text-xs font-semibold text-indigo-400 hover:text-indigo-300 transition-colors"
             >
-              <i className="fa-solid fa-download"></i> Download WebM
+              Download WebM
             </button>
           </div>
         </div>
 
         {/* Expandable Description Box */}
-        <div style={{ marginTop: '0.85rem', background: 'var(--bg-surface)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '0.85rem 1rem' }}>
-          <div style={{ display: 'flex', gap: '12px', fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.4rem' }}>
+        <div className="mt-3 glass-card p-4 rounded-xl border border-slate-800 text-xs space-y-2">
+          <div className="flex items-center gap-3 text-slate-300 font-bold">
             <span>142,500 views</span>
             <span>• Premiered Aug 7, 2026</span>
-            <span style={{ color: 'var(--accent-indigo)' }}>#HinglishMasterclass</span>
+            <span className="text-indigo-400">#HinglishMasterclass</span>
           </div>
 
-          <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
+          <p className="text-slate-300 leading-relaxed">
             {videoData.summary || `Single-scene Hinglish AI Masterclass on "${videoData.topic}".`}
-          </div>
+          </p>
 
           {isDescriptionExpanded && (
-            <div style={{ marginTop: '0.85rem', paddingTop: '0.85rem', borderTop: '1px solid var(--border-color)', fontSize: '0.8rem' }}>
-              <div style={{ fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.4rem' }}>
-                <i className="fa-solid fa-book-open-reader" style={{ color: '#10b981', marginRight: '6px' }}></i> Open Academic Citations:
-              </div>
-              <div style={{ color: 'var(--text-secondary)', fontSize: '0.78rem' }}>
+            <div className="mt-3 pt-3 border-t border-slate-800 space-y-1 text-slate-400">
+              <div className="font-bold text-white">Open Academic Citations:</div>
+              <p className="text-[11px]">
                 Content derived from OpenStax Rice University, Project Gutenberg, Internet Archive, LibreTexts OER, Wikidata SPARQL, Wolfram Alpha API, and Stack Exchange Q&A.
-              </div>
+              </p>
             </div>
           )}
 
           <button
             onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
-            style={{ background: 'none', border: 'none', color: 'var(--accent-indigo)', fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer', marginTop: '0.4rem', padding: 0 }}
+            className="text-indigo-400 font-bold hover:underline"
           >
             {isDescriptionExpanded ? 'Show less ▲' : '...more ▼'}
           </button>

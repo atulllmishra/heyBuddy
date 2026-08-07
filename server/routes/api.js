@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const videoController = require('../controllers/videoController');
 const chatController = require('../controllers/chatController');
+const userController = require('../controllers/userController');
 
 // Primary & Alias Masterclass Video Generation Endpoints
 router.post('/generate-lecture', videoController.generateVideo);
@@ -19,6 +20,21 @@ router.get('/heygen/avatars-voices', videoController.getHeyGenCatalog);
 router.post('/heygen/generate-video', videoController.generateHeyGenVideo);
 
 router.post('/chat/doubt', chatController.handleDoubtChat);
+
+// Library Endpoints
+router.get('/library', userController.getLibrary);
+router.post('/library', userController.addToLibrary);
+router.delete('/library/:id', userController.removeFromLibrary);
+
+// History Endpoints
+router.get('/history', userController.getHistory);
+router.post('/history', userController.addHistory);
+router.delete('/history', userController.clearHistory);
+
+// Analytics & Profile Endpoints
+router.get('/analytics', userController.getAnalytics);
+router.get('/user/profile', userController.getProfile);
+router.post('/user/profile', userController.updateProfile);
 
 router.get('/topics/sample', (req, res) => {
   res.json([

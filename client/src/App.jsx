@@ -1,47 +1,47 @@
 import React, { useState, useEffect } from 'react';
 import Header from './components/Header';
 import Sidebar from './components/Sidebar';
-import HomeFeed from './components/HomeFeed';
-import Studio from './components/Studio';
-import VideoPlayer from './components/VideoPlayer';
-import ControlsBar from './components/ControlsBar';
-import QuizTab from './components/QuizTab';
-import NotesTab from './components/NotesTab';
-import DoubtChat from './components/DoubtChat';
-import AnalyticsDashboard from './components/AnalyticsDashboard';
 import AuthModal from './components/AuthModal';
 import SettingsModal from './components/SettingsModal';
+
+import HomePage from './pages/HomePage';
+import StudioPage from './pages/StudioPage';
+import WatchPage from './pages/WatchPage';
+import LibraryPage from './pages/LibraryPage';
+import HistoryPage from './pages/HistoryPage';
+import AnalyticsPage from './pages/AnalyticsPage';
+import SettingsPage from './pages/SettingsPage';
+
 import { API_BASE_URL } from './config';
 
 export default function App() {
-  // Navigation & UI State
-  const [activeNav, setActiveNav] = useState('home'); // 'home' | 'studio' | 'library' | 'history' | 'analytics'
+  // Navigation & Layout State
+  const [activeNav, setActiveNav] = useState('home'); // 'home' | 'studio' | 'watch' | 'library' | 'history' | 'analytics' | 'settings'
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedStudioTopic, setSelectedStudioTopic] = useState('');
 
-  // User Auth & Choices State
+  // User Auth & Preference State
   const [user, setUser] = useState(null);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showKeyModal, setShowKeyModal] = useState(false);
 
-  // Video Player & Lecture State
+  // Video Masterclass State
   const [videoData, setVideoData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [activeSceneIndex, setActiveSceneIndex] = useState(0);
   const [sceneProgress, setSceneProgress] = useState(0);
-  const [activeSideTab, setActiveSideTab] = useState('scenes'); // 'scenes' | 'quiz' | 'notes' | 'chat'
+  const [activeSideTab, setActiveSideTab] = useState('scenes');
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
   const [volume, setVolume] = useState(1);
   const [isMuted, setIsMuted] = useState(false);
   const [showCaptions, setShowCaptions] = useState(true);
   const [isTheaterMode, setIsTheaterMode] = useState(false);
   const [currentAvatarId, setCurrentAvatarId] = useState('Daisy-in-suit');
-  const [codec, setCodec] = useState('AV1');
-  const [quality, setQuality] = useState('1080p60');
   const [isHeyGenGenerating, setIsHeyGenGenerating] = useState(false);
 
-  // Load User Session & Preferences on Mount
+  // Load User Session on Mount
   useEffect(() => {
     const savedUser = localStorage.getItem('heybuddy_user');
     if (savedUser) {
@@ -53,7 +53,7 @@ export default function App() {
     }
   }, []);
 
-  // Web Speech Audio Synthesizer
+  // Web Speech Synthesis
   const speakNarration = (text) => {
     if (!('speechSynthesis' in window)) return;
     window.speechSynthesis.cancel();
@@ -80,8 +80,8 @@ export default function App() {
     }
   };
 
-  // Generate Single-Scene Hinglish Masterclass
-  const handleGenerate = async ({ topic, gradeLevel = 'High School', streamDomain = 'STEM / Physical Sciences' }) => {
+  // Generate Masterclass from Backend API
+  const handleGenerate = async ({ topic, gradeLevel, streamDomain, methodology, language, style, apiKey, openaiKey, useHeyGen, avatarId }) => {
     setLoading(true);
     stopSpeech();
 
@@ -93,99 +93,80 @@ export default function App() {
           topic,
           gradeLevel,
           streamDomain,
-          language: 'Hinglish',
-          apiKey: localStorage.getItem('heybuddy_gemini_key') || '',
-          openaiKey: localStorage.getItem('heybuddy_openai_key') || ''
+          methodology,
+          language,
+          style,
+          apiKey: apiKey || localStorage.getItem('heybuddy_gemini_key') || '',
+          openaiKey: openaiKey || localStorage.getItem('heybuddy_openai_key') || ''
         })
       });
 
-      const data = await res.json();
-      if (res.ok && data.success && data.data) {
-        setVideoData(data.data);
+      const json = await res.json();
+      if (json.success && json.data) {
+        setVideoData(json.data);
         setActiveSceneIndex(0);
-        setSceneProgress(0);
-        setIsPlaying(false);
+        setIsPlaying(true);
         setActiveNav('watch');
+
+        const currentScene = json.data.scenes?.[0];
+        if (currentScene) speakNarration(currentScene.narration);
+
+        // Record into Backend History API
+        fetch(`${API_BASE_URL}/api/history`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            topic: json.data.topic,
+            methodology: methodology || 'Feynman Technique',
+            language: language || 'Hinglish',
+            duration: '10 min'
+          })
+        }).catch(err => console.warn('Failed to log history:', err));
+
       } else {
-        alert(`Generation Notice: ${data.error || 'Please try again.'}`);
+        alert(json.error || 'Failed to generate lecture script.');
       }
     } catch (err) {
-      console.error('Generation error:', err);
-      alert(`Failed to connect to backend server at ${API_BASE_URL}. Ensure backend service is active.`);
+      console.error('[App] Generation error:', err);
+      alert('Could not connect to backend server. Make sure node server is running.');
     } finally {
       setLoading(false);
     }
   };
 
+  const handleSelectTopicFromHome = (topicTitle) => {
+    handleGenerate({ topic: topicTitle });
+  };
+
+  const handleNavigateStudio = (topicTitle = '') => {
+    setSelectedStudioTopic(topicTitle);
+    setActiveNav('studio');
+  };
+
+  const handleSaveToLibrary = (data) => {
+    fetch(`${API_BASE_URL}/api/library`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        title: data.topic,
+        category: data.subject || 'General',
+        summary: data.summary || 'Custom generated AI Masterclass lecture.'
+      })
+    }).catch(err => console.warn('Failed to save to library:', err));
+  };
+
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     if (!searchQuery.trim()) return;
-    handleGenerate({
-      topic: searchQuery,
-      gradeLevel: user?.rigorLevel || 'College / Undergrad',
-      streamDomain: user?.academicStream || 'STEM / Physical Sciences'
-    });
-  };
-
-  const handleSeek = (percentage) => {
-    if (!videoData) return;
-    const currentScene = videoData.scenes[0] || {};
-    const totalSecs = currentScene.duration || 200;
-    const seekTime = (percentage / 100) * totalSecs;
-    setSceneProgress(seekTime);
-  };
-
-  const getCurrentTime = () => sceneProgress;
-  const getTotalDuration = () => (videoData?.scenes?.[0]?.duration || 200);
-
-  const formatTime = (secs) => {
-    const m = Math.floor(secs / 60);
-    const s = Math.floor(secs % 60);
-    return `${m}:${s < 10 ? '0' : ''}${s}`;
-  };
-
-  // HeyGen Avatar Video Trigger
-  const handleGenerateHeyGenVideo = async () => {
-    if (!videoData || !videoData.scenes[0]) return;
-    const currentScene = videoData.scenes[0];
-    setIsHeyGenGenerating(true);
-
-    try {
-      const res = await fetch(`${API_BASE_URL}/api/heygen/generate-video`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          scriptText: currentScene.narration,
-          avatarId: currentAvatarId,
-          voiceId: 'en-US-JennyNeural',
-          gender: 'female',
-          heygenKey: localStorage.getItem('heybuddy_heygen_key') || ''
-        })
-      });
-      const data = await res.json();
-      if (data.success && data.data?.videoId) {
-        alert(`🎉 HeyGen Avatar Video Generation Initiated!\nVideo ID: ${data.data.videoId}`);
-      } else {
-        alert(`HeyGen Notice: ${data.error || 'Please check your HeyGen API key in Settings.'}`);
-      }
-    } catch (err) {
-      console.error('HeyGen generation error:', err);
-      alert('Failed to connect to backend server.');
-    } finally {
-      setIsHeyGenGenerating(false);
-    }
-  };
-
-  const handleExportVideo = () => {
-    alert('WebM Masterclass recording initiated! Download will trigger automatically.');
+    handleGenerate({ topic: searchQuery });
   };
 
   return (
-    <div className="app-container">
-      {/* Authentic YouTube Top Navigation Bar */}
+    <div className="min-h-screen bg-[#0B0F19] text-slate-100 flex flex-col font-sans">
+      {/* Top Fixed Header */}
       <Header
         activeNav={activeNav}
-        onSelectNav={(nav) => { stopSpeech(); setActiveNav(nav); }}
+        onSelectNav={setActiveNav}
         user={user}
         onOpenAuth={() => setShowAuthModal(true)}
         onOpenSettings={() => setShowKeyModal(true)}
@@ -195,178 +176,105 @@ export default function App() {
         onSearchSubmit={handleSearchSubmit}
       />
 
-      <div className="main-layout">
-        {/* Authentic YouTube Left Collapsible Sidebar */}
+      {/* Main Layout Body */}
+      <div className="flex-1 flex overflow-hidden">
+        {/* Left Navigation Sidebar */}
         <Sidebar
           activeNav={activeNav}
-          onSelectNav={(nav) => { stopSpeech(); setActiveNav(nav); }}
+          onSelectNav={setActiveNav}
           isCollapsed={isSidebarCollapsed}
         />
 
-        {/* Content View Container */}
-        <main
-          className="content-area"
-          style={{ marginLeft: isSidebarCollapsed ? '72px' : '240px' }}
-        >
+        {/* Center Page Content Workspace */}
+        <main className="flex-1 overflow-y-auto p-4 md:p-8 space-y-6">
           {activeNav === 'home' && (
-            <HomeFeed
-              onSelectVideo={(topic, domain) => handleGenerate({ topic, streamDomain: domain })}
-              onOpenStudio={() => setActiveNav('studio')}
+            <HomePage
+              onSelectTopic={handleSelectTopicFromHome}
+              onNavigateStudio={handleNavigateStudio}
             />
           )}
 
           {activeNav === 'studio' && (
-            <Studio onGenerate={handleGenerate} loading={loading} />
+            <StudioPage
+              onGenerate={handleGenerate}
+              loading={loading}
+              initialTopic={selectedStudioTopic}
+            />
+          )}
+
+          {activeNav === 'watch' && (
+            <WatchPage
+              videoData={videoData}
+              isPlaying={isPlaying}
+              togglePlay={togglePlay}
+              activeSceneIndex={activeSceneIndex}
+              setActiveSceneIndex={setActiveSceneIndex}
+              sceneProgress={sceneProgress}
+              playbackSpeed={playbackSpeed}
+              setPlaybackSpeed={setPlaybackSpeed}
+              volume={volume}
+              setVolume={setVolume}
+              isMuted={isMuted}
+              setIsMuted={setIsMuted}
+              showCaptions={showCaptions}
+              setShowCaptions={setShowCaptions}
+              isTheaterMode={isTheaterMode}
+              setIsTheaterMode={setIsTheaterMode}
+              activeSideTab={activeSideTab}
+              setActiveSideTab={setActiveSideTab}
+              currentAvatarId={currentAvatarId}
+              setCurrentAvatarId={setCurrentAvatarId}
+              isHeyGenGenerating={isHeyGenGenerating}
+              onSaveToLibrary={handleSaveToLibrary}
+              onBackToHome={() => setActiveNav('home')}
+            />
+          )}
+
+          {activeNav === 'library' && (
+            <LibraryPage
+              onSelectTopic={handleSelectTopicFromHome}
+            />
+          )}
+
+          {activeNav === 'history' && (
+            <HistoryPage
+              onSelectTopic={handleSelectTopicFromHome}
+            />
           )}
 
           {activeNav === 'analytics' && (
-            <AnalyticsDashboard user={user} />
+            <AnalyticsPage />
           )}
 
-          {(activeNav === 'library' || activeNav === 'history' || activeNav === 'subscriptions') && (
-            <div style={{ padding: '1.5rem', background: 'var(--yt-bg-card)', borderRadius: '16px', border: '1px solid var(--yt-border)' }}>
-              <h2 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '0.5rem', color: 'var(--yt-text-primary)' }}>
-                {activeNav === 'library' ? '📚 Your Library & Saved Masterclasses' : activeNav === 'history' ? '🕒 Watch History' : '🔔 Subscriptions'}
-              </h2>
-              <p style={{ fontSize: '0.85rem', color: 'var(--yt-text-secondary)' }}>
-                Access your bookmarked Hinglish lectures, quiz logs, and open data citations.
-              </p>
-              <div style={{ marginTop: '1rem', display: 'flex', gap: '0.5rem' }}>
-                <button className="chip-btn active" onClick={() => setActiveNav('studio')}>
-                  + Generate New Masterclass
-                </button>
-              </div>
-            </div>
-          )}
-
-          {activeNav === 'watch' && videoData && (
-            <div style={{ display: 'grid', gridTemplateColumns: isTheaterMode ? '1fr' : '1fr 360px', gap: '1.5rem' }}>
-              {/* Left Column: YouTube Video Player + Description */}
-              <div>
-                <VideoPlayer
-                  videoData={videoData}
-                  activeSceneIndex={0}
-                  sceneProgress={sceneProgress}
-                  isPlaying={isPlaying}
-                  currentAvatarId={currentAvatarId}
-                  onSelectAvatar={(id) => setCurrentAvatarId(id)}
-                  showCaptions={showCaptions}
-                  codec={codec}
-                  onSelectCodec={setCodec}
-                  quality={quality}
-                  onSelectQuality={setQuality}
-                  isTheaterMode={isTheaterMode}
-                  onToggleTheater={() => setIsTheaterMode(!isTheaterMode)}
-                  onTogglePlay={togglePlay}
-                  onSeek={handleSeek}
-                  getCurrentTime={getCurrentTime}
-                  getTotalDuration={getTotalDuration}
-                  formatTime={formatTime}
-                  onExportVideo={handleExportVideo}
-                />
-
-                <ControlsBar
-                  isPlaying={isPlaying}
-                  onTogglePlay={togglePlay}
-                  progressPercent={(getCurrentTime() / getTotalDuration()) * 100}
-                  onSeek={handleSeek}
-                  currentTimeStr={formatTime(getCurrentTime())}
-                  totalTimeStr={formatTime(getTotalDuration())}
-                  playbackSpeed={playbackSpeed}
-                  onChangeSpeed={setPlaybackSpeed}
-                  volume={volume}
-                  onVolumeChange={setVolume}
-                  isMuted={isMuted}
-                  onToggleMute={() => setIsMuted(!isMuted)}
-                  onExportVideo={handleExportVideo}
-                  showCaptions={showCaptions}
-                  onToggleCaptions={() => setShowCaptions(!showCaptions)}
-                  onGenerateHeyGenVideo={handleGenerateHeyGenVideo}
-                  isHeyGenGenerating={isHeyGenGenerating}
-                />
-              </div>
-
-              {/* Right Column: YouTube Up Next Sidebar + Interactive Tabs */}
-              {!isTheaterMode && (
-                <div style={{ background: 'var(--yt-bg-card)', border: '1px solid var(--yt-border)', borderRadius: '16px', padding: '1rem' }}>
-                  <div style={{ display: 'flex', borderBottom: '1px solid var(--yt-border)', marginBottom: '1rem' }}>
-                    <button
-                      className={`chip-btn ${activeSideTab === 'scenes' ? 'active' : ''}`}
-                      style={{ borderRadius: 0, border: 'none', borderBottom: activeSideTab === 'scenes' ? '2px solid var(--yt-blue)' : 'none', flex: 1 }}
-                      onClick={() => setActiveSideTab('scenes')}
-                    >
-                      Up Next
-                    </button>
-                    <button
-                      className={`chip-btn ${activeSideTab === 'quiz' ? 'active' : ''}`}
-                      style={{ borderRadius: 0, border: 'none', borderBottom: activeSideTab === 'quiz' ? '2px solid var(--yt-blue)' : 'none', flex: 1 }}
-                      onClick={() => setActiveSideTab('quiz')}
-                    >
-                      Quiz
-                    </button>
-                    <button
-                      className={`chip-btn ${activeSideTab === 'notes' ? 'active' : ''}`}
-                      style={{ borderRadius: 0, border: 'none', borderBottom: activeSideTab === 'notes' ? '2px solid var(--yt-blue)' : 'none', flex: 1 }}
-                      onClick={() => setActiveSideTab('notes')}
-                    >
-                      Notes
-                    </button>
-                    <button
-                      className={`chip-btn ${activeSideTab === 'chat' ? 'active' : ''}`}
-                      style={{ borderRadius: 0, border: 'none', borderBottom: activeSideTab === 'chat' ? '2px solid var(--yt-blue)' : 'none', flex: 1 }}
-                      onClick={() => setActiveSideTab('chat')}
-                    >
-                      Ask AI
-                    </button>
-                  </div>
-
-                  {activeSideTab === 'scenes' && (
-                    <div>
-                      <div style={{ fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.75rem', color: 'var(--yt-text-primary)' }}>
-                        ▶ Currently Playing Masterclass
-                      </div>
-                      <div style={{ background: '#121212', border: '1px solid var(--yt-border)', borderRadius: '10px', padding: '0.75rem' }}>
-                        <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--yt-blue)', marginBottom: '4px' }}>
-                          1. {videoData.topic}
-                        </div>
-                        <div style={{ fontSize: '0.75rem', color: 'var(--yt-text-secondary)' }}>
-                          Hinglish Masterclass • {formatTime(getTotalDuration())}
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {activeSideTab === 'quiz' && <QuizTab quizItems={videoData.quiz || []} />}
-                  {activeSideTab === 'notes' && <NotesTab topic={videoData.topic} notesItems={videoData.notes || []} scenes={videoData.scenes} />}
-                  {activeSideTab === 'chat' && <DoubtChat topic={videoData.topic} timestamp={formatTime(getCurrentTime())} apiKey={localStorage.getItem('heybuddy_gemini_key') || ''} />}
-                </div>
-              )}
-            </div>
+          {activeNav === 'settings' && (
+            <SettingsPage />
           )}
         </main>
       </div>
 
-      {/* User Auth & Choices Preferences Modal */}
-      <AuthModal
-        isOpen={showAuthModal}
-        onClose={() => setShowAuthModal(false)}
-        onLoginSuccess={(userData) => setUser(userData)}
-      />
+      {/* Global Auth & Settings Modals */}
+      {showAuthModal && (
+        <AuthModal
+          user={user}
+          onLogin={(userData) => {
+            setUser(userData);
+            localStorage.setItem('heybuddy_user', JSON.stringify(userData));
+            setShowAuthModal(false);
+          }}
+          onLogout={() => {
+            setUser(null);
+            localStorage.removeItem('heybuddy_user');
+            setShowAuthModal(false);
+          }}
+          onClose={() => setShowAuthModal(false)}
+        />
+      )}
 
-      {/* Settings Modal */}
-      <SettingsModal
-        isOpen={showKeyModal}
-        onClose={() => setShowKeyModal(false)}
-        onSaveApiKeys={({ gemini, sarvam, openai, elevenlabs, deepl, heygen }) => {
-          localStorage.setItem('heybuddy_gemini_key', gemini);
-          localStorage.setItem('heybuddy_sarvam_key', sarvam);
-          localStorage.setItem('heybuddy_openai_key', openai);
-          localStorage.setItem('heybuddy_elevenlabs_key', elevenlabs);
-          localStorage.setItem('heybuddy_deepl_key', deepl);
-          localStorage.setItem('heybuddy_heygen_key', heygen);
-          setShowKeyModal(false);
-        }}
-      />
+      {showKeyModal && (
+        <SettingsModal
+          onClose={() => setShowKeyModal(false)}
+        />
+      )}
     </div>
   );
 }
