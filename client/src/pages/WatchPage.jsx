@@ -108,9 +108,22 @@ export default function WatchPage({
           <VideoPlayer
             videoData={videoData}
             isPlaying={isPlaying}
+            onTogglePlay={togglePlay}
             activeSceneIndex={activeSceneIndex}
+            setActiveSceneIndex={setActiveSceneIndex}
             sceneProgress={sceneProgress}
             showCaptions={showCaptions}
+            setShowCaptions={setShowCaptions}
+            isTheaterMode={isTheaterMode}
+            onToggleTheater={() => setIsTheaterMode(!isTheaterMode)}
+            playbackSpeed={playbackSpeed}
+            setPlaybackSpeed={setPlaybackSpeed}
+            volume={volume}
+            setVolume={setVolume}
+            isMuted={isMuted}
+            setIsMuted={setIsMuted}
+            currentAvatarId={currentAvatarId}
+            onSelectAvatar={setCurrentAvatarId}
           />
 
           <ControlsBar
