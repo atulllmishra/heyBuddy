@@ -28,12 +28,17 @@ app.get('/health', (req, res) => {
 // API Routes
 app.use('/api', apiRoutes);
 
+// Catch unmatched /api routes with 404 JSON
+app.use('/api', (req, res) => {
+  res.status(404).json({ success: false, error: `API route ${req.originalUrl} not found` });
+});
+
 // Serve static React client build files if client/dist exists
 const clientDist = path.join(__dirname, '../client/dist');
 app.use(express.static(clientDist));
 
 // Wildcard SPA Fallback route for client app
-app.get('/{*path}', (req, res) => {
+app.use((req, res) => {
   const indexPath = path.join(clientDist, 'index.html');
   if (fs.existsSync(indexPath)) {
     res.sendFile(indexPath);

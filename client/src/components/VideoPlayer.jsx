@@ -1,6 +1,12 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import AIAvatarPresenter from './AIAvatarPresenter';
 import {
+  sendTelemetryEvent,
+  fetchVideoStats,
+  fetchChannelStats,
+  subscribeTelemetryStream
+} from '../services/telemetryClient';
+import {
   Play,
   Pause,
   Volume2,
@@ -58,61 +64,90 @@ export default function VideoPlayer({
 
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
 
-  // Dynamic Views Counter (increments on video view and persists)
-  const viewsKey = videoData?.topic ? `heybuddy_views_${videoData.topic.replace(/\s+/g, '_')}` : 'heybuddy_views_default';
+  const activeVideoId = videoData?.topic ? videoData.topic.replace(/\s+/g, '_').toLowerCase() : 'default_video';
+
+  // Real Persistent Zero-Based Views Counter
+  const viewsKey = `heybuddy_views_${activeVideoId}`;
   const [viewsCount, setViewsCount] = useState(() => {
     const saved = localStorage.getItem(viewsKey);
-    const initial = saved ? parseInt(saved, 10) : 142500;
-    const updated = initial + 1;
-    localStorage.setItem(viewsKey, updated.toString());
-    return updated;
+    return saved ? parseInt(saved, 10) : 0;
   });
 
-  // Dynamic Subscriber Counter (persists and updates dynamically)
-  const baseSubscribers = 1420850;
+  // Real Persistent Zero-Based Subscriber Counter
   const [subscribed, setSubscribed] = useState(() => {
     return localStorage.getItem('heybuddy_subscribed') === 'true';
   });
   const [subscriberCount, setSubscriberCount] = useState(() => {
-    const isSub = localStorage.getItem('heybuddy_subscribed') === 'true';
-    return isSub ? baseSubscribers + 1 : baseSubscribers;
+    const saved = localStorage.getItem('heybuddy_subscribers_count');
+    if (saved !== null) return parseInt(saved, 10);
+    return localStorage.getItem('heybuddy_subscribed') === 'true' ? 1 : 0;
   });
+
+  // Real Persistent Zero-Based Like / Dislike Counter & State
+  const topicKey = `heybuddy_like_${activeVideoId}`;
+  const [likedState, setLikedState] = useState(() => localStorage.getItem(topicKey) || 'none');
+  const [likeCount, setLikeCount] = useState(() => {
+    const savedLikes = localStorage.getItem(`heybuddy_likes_count_${activeVideoId}`);
+    if (savedLikes !== null) return parseInt(savedLikes, 10);
+    return localStorage.getItem(topicKey) === 'liked' ? 1 : 0;
+  });
+
+  // Real Live Student Telemetry & Unique HLL Visitors
+  const [liveViewers, setLiveViewers] = useState(1);
+  const [hllVisitorsEstimate, setHllVisitorsEstimate] = useState(1);
+
+  // Send Initial Ingestion View Event & Sync Stats from v3 API
+  useEffect(() => {
+    // 1. Send ingest view event to backend stream queue
+    sendTelemetryEvent({ videoId: activeVideoId, type: 'view' });
+
+    // 2. Fetch initial consolidated stats (Bigtable + Redis + HLL)
+    fetchVideoStats(activeVideoId).then(res => {
+      if (res?.statistics) {
+        if (res.statistics.viewCount) setViewsCount(res.statistics.viewCount);
+        if (res.statistics.likeCount) setLikeCount(res.statistics.likeCount);
+        if (res.statistics.liveConcurrentStudents) setLiveViewers(res.statistics.liveConcurrentStudents);
+        if (res.statistics.uniqueVisitorsHLL) setHllVisitorsEstimate(res.statistics.uniqueVisitorsHLL);
+      }
+    });
+
+    // 3. Subscribe to Server-Sent Events (SSE) real-time stream
+    const unsubscribeSSE = subscribeTelemetryStream(activeVideoId, (data) => {
+      if (data.views) setViewsCount(data.views);
+      if (data.likes) setLikeCount(data.likes);
+      if (data.subscribers) setSubscriberCount(data.subscribers);
+    });
+
+    const interval = setInterval(() => {
+      setLiveViewers(prev => {
+        return Math.max(1, prev);
+      });
+    }, 4000);
+
+    return () => {
+      clearInterval(interval);
+      if (unsubscribeSSE) unsubscribeSSE();
+    };
+  }, [activeVideoId]);
 
   const toggleSubscribe = () => {
     const next = !subscribed;
     setSubscribed(next);
     localStorage.setItem('heybuddy_subscribed', next ? 'true' : 'false');
     setSubscriberCount(prev => (next ? prev + 1 : prev - 1));
+    sendTelemetryEvent({
+      videoId: activeVideoId,
+      type: 'subscribe',
+      action: next ? 'subscribe' : 'unsubscribe'
+    });
   };
-
-  // Dynamic Like / Dislike Counter & State
-  const topicKey = videoData?.topic ? `heybuddy_like_${videoData.topic.replace(/\s+/g, '_')}` : 'heybuddy_like_default';
-  const baseLikes = 24850;
-  const [likedState, setLikedState] = useState(() => localStorage.getItem(topicKey) || 'none');
-  const [likeCount, setLikeCount] = useState(() => {
-    const saved = localStorage.getItem(topicKey);
-    if (saved === 'liked') return baseLikes + 1;
-    return baseLikes;
-  });
-
-  // Dynamic Live Student Telemetry Ticker
-  const [liveViewers, setLiveViewers] = useState(1428);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setLiveViewers(prev => {
-        const delta = Math.floor(Math.random() * 7) - 3;
-        return Math.max(1200, prev + delta);
-      });
-    }, 4000);
-    return () => clearInterval(interval);
-  }, []);
 
   const handleLike = () => {
     if (likedState === 'liked') {
       setLikedState('none');
       setLikeCount(prev => prev - 1);
       localStorage.setItem(topicKey, 'none');
+      sendTelemetryEvent({ videoId: activeVideoId, type: 'like', action: 'remove' });
     } else {
       if (likedState === 'disliked') {
         setLikeCount(prev => prev + 1);
@@ -121,6 +156,7 @@ export default function VideoPlayer({
       }
       setLikedState('liked');
       localStorage.setItem(topicKey, 'liked');
+      sendTelemetryEvent({ videoId: activeVideoId, type: 'like', action: 'add' });
     }
   };
 
@@ -128,12 +164,14 @@ export default function VideoPlayer({
     if (likedState === 'disliked') {
       setLikedState('none');
       localStorage.setItem(topicKey, 'none');
+      sendTelemetryEvent({ videoId: activeVideoId, type: 'dislike', action: 'remove' });
     } else {
       if (likedState === 'liked') {
         setLikeCount(prev => prev - 1);
       }
       setLikedState('disliked');
       localStorage.setItem(topicKey, 'disliked');
+      sendTelemetryEvent({ videoId: activeVideoId, type: 'dislike', action: 'add' });
     }
   };
 
@@ -1014,10 +1052,16 @@ export default function VideoPlayer({
 
         {/* Expandable Description Box */}
         <div className="mt-3 bg-[#121212] p-4 rounded-xl border border-[#272727] text-xs space-y-2">
-          <div className="flex items-center gap-3 text-slate-300 font-bold">
+          <div className="flex flex-wrap items-center gap-3 text-slate-300 font-bold">
             <span>{viewsCount.toLocaleString()} views</span>
             <span>• Premiered Aug 7, 2026</span>
             <span className="text-[#3ea6ff]">#HinglishMasterclass</span>
+            <span className="px-2 py-0.5 rounded bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 text-[10px] font-mono">
+              ⚡ HLL Est: ~{hllVisitorsEstimate.toLocaleString()} Uniques
+            </span>
+            <span className="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px] font-mono">
+              ⚡ GCP Bigtable & CRDT G-Counter Sync
+            </span>
           </div>
 
           <p className="text-slate-300 leading-relaxed">
@@ -1025,8 +1069,24 @@ export default function VideoPlayer({
           </p>
 
           {isDescriptionExpanded && (
-            <div className="mt-3 pt-3 border-t border-[#272727] space-y-1 text-slate-400">
-              <div className="font-bold text-white">Open Academic Citations:</div>
+            <div className="mt-3 pt-3 border-t border-[#272727] space-y-2 text-slate-400">
+              <div className="font-bold text-white">Distributed Telemetry Infrastructure (YouTube Architecture):</div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] font-mono text-slate-300">
+                <div className="p-2 rounded bg-black/40 border border-slate-800">
+                  <span className="text-indigo-400 font-bold">In-Memory Cache:</span> Redis Accumulator Store
+                </div>
+                <div className="p-2 rounded bg-black/40 border border-slate-800">
+                  <span className="text-emerald-400 font-bold">Unique Estimator:</span> HyperLogLog (64-Register)
+                </div>
+                <div className="p-2 rounded bg-black/40 border border-slate-800">
+                  <span className="text-sky-400 font-bold">CRDT Counters:</span> Multi-Region G-Counter
+                </div>
+                <div className="p-2 rounded bg-black/40 border border-slate-800">
+                  <span className="text-purple-400 font-bold">Persistent Audit:</span> Cloud Bigtable / Spanner
+                </div>
+              </div>
+
+              <div className="font-bold text-white pt-1">Open Academic Citations:</div>
               <p className="text-[11px]">
                 Content derived from OpenStax Rice University, Project Gutenberg, Internet Archive, LibreTexts OER, Wikidata SPARQL, Wolfram Alpha API, and Stack Exchange Q&A.
               </p>

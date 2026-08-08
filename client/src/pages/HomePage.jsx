@@ -37,8 +37,8 @@ export default function HomePage({ onSelectTopic, onNavigateStudio, selectedDoma
       title: 'Photosynthesis & Light-Dependent Reactions Masterclass',
       channel: 'heyBuddy AI Biology',
       verified: true,
-      views: '142K',
-      timeAgo: '2 days ago',
+      viewsKey: 'heybuddy_views_photosynthesis_&_light-dependent_reactions_masterclass',
+      timeAgo: 'Just now',
       duration: '10:45',
       category: 'Biology',
       icon: '🌱',
@@ -49,8 +49,8 @@ export default function HomePage({ onSelectTopic, onNavigateStudio, selectedDoma
       title: "Newton's 3 Laws of Motion & Vector Mechanics Proofs",
       channel: 'heyBuddy AI Physics',
       verified: true,
-      views: '98K',
-      timeAgo: '4 days ago',
+      viewsKey: "heybuddy_views_newton's_3_laws_of_motion_&_vector_mechanics_proofs",
+      timeAgo: 'Just now',
       duration: '12:15',
       category: 'Physics',
       icon: '🚀',
@@ -61,8 +61,8 @@ export default function HomePage({ onSelectTopic, onNavigateStudio, selectedDoma
       title: 'Quantum Entanglement, Superposition & Wavefunction Collapse',
       channel: 'heyBuddy Quantum Lab',
       verified: true,
-      views: '210K',
-      timeAgo: '1 week ago',
+      viewsKey: 'heybuddy_views_quantum_entanglement,_superposition_&_wavefunction_collapse',
+      timeAgo: 'Just now',
       duration: '15:30',
       category: 'Physics',
       icon: '⚛️',
@@ -73,8 +73,8 @@ export default function HomePage({ onSelectTopic, onNavigateStudio, selectedDoma
       title: 'Derivatives, Chain Rule & Rate of Change Intuition',
       channel: 'heyBuddy AI Math',
       verified: true,
-      views: '75K',
-      timeAgo: '5 days ago',
+      viewsKey: 'heybuddy_views_derivatives,_chain_rule_&_rate_of_change_intuition',
+      timeAgo: 'Just now',
       duration: '09:20',
       category: 'Mathematics',
       icon: '📐',
@@ -280,7 +280,7 @@ export default function HomePage({ onSelectTopic, onNavigateStudio, selectedDoma
                   <CheckCircle2 className="w-3 h-3 text-[#3ea6ff] shrink-0" />
                 </div>
                 <div className="text-xs text-[#aaa] flex items-center gap-1.5 font-sans">
-                  <span>{item.views} views</span>
+                  <span>{(parseInt(localStorage.getItem(item.viewsKey) || '0', 10)).toLocaleString()} views</span>
                   <span>•</span>
                   <span>{item.timeAgo}</span>
                 </div>

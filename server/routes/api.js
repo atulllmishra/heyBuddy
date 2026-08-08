@@ -3,6 +3,7 @@ const router = express.Router();
 const videoController = require('../controllers/videoController');
 const chatController = require('../controllers/chatController');
 const userController = require('../controllers/userController');
+const telemetryController = require('../controllers/telemetryController');
 
 // Primary & Alias Masterclass Video Generation Endpoints
 router.post('/generate-lecture', videoController.generateVideo);
@@ -20,6 +21,12 @@ router.get('/heygen/avatars-voices', videoController.getHeyGenCatalog);
 router.post('/heygen/generate-video', videoController.generateHeyGenVideo);
 
 router.post('/chat/doubt', chatController.handleDoubtChat);
+
+// YouTube-Grade Telemetry v3 Endpoints
+router.post('/v3/telemetry/event', telemetryController.ingestEvent);
+router.get('/v3/videos/stats', telemetryController.getVideoStats);
+router.get('/v3/channels/stats', telemetryController.getChannelStats);
+router.get('/v3/telemetry/stream', telemetryController.telemetryStream);
 
 // Library Endpoints
 router.get('/library', userController.getLibrary);
