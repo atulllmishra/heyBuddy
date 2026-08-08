@@ -16,12 +16,43 @@ import { API_BASE_URL } from './config';
 
 export default function App() {
   // Navigation & Layout State
-  const [activeNav, setActiveNav] = useState('home'); // 'home' | 'studio' | 'watch' | 'library' | 'history' | 'analytics' | 'settings'
+  const [activeNav, setActiveNavState] = useState(() => {
+    const hash = window.location.hash.replace('#/', '');
+    const validPages = ['home', 'studio', 'watch', 'library', 'history', 'analytics', 'settings'];
+    return validPages.includes(hash) ? hash : 'home';
+  });
+
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [selectedDomain, setSelectedDomain] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedStudioTopic, setSelectedStudioTopic] = useState('');
+
+  // Helper to change page and sync URL hash history
+  const handleSelectNav = (newNav) => {
+    setActiveNavState(newNav);
+    if (window.location.hash !== `#/${newNav}`) {
+      window.location.hash = `#/${newNav}`;
+    }
+  };
+
+  // Browser History Back/Forward (popstate & hashchange) Sync
+  useEffect(() => {
+    const syncNavFromHash = () => {
+      const hash = window.location.hash.replace('#/', '');
+      const validPages = ['home', 'studio', 'watch', 'library', 'history', 'analytics', 'settings'];
+      if (validPages.includes(hash)) {
+        setActiveNavState(hash);
+      }
+    };
+
+    window.addEventListener('hashchange', syncNavFromHash);
+    window.addEventListener('popstate', syncNavFromHash);
+    return () => {
+      window.removeEventListener('hashchange', syncNavFromHash);
+      window.removeEventListener('popstate', syncNavFromHash);
+    };
+  }, []);
 
   // User Auth & Preference State
   const [user, setUser] = useState(null);
@@ -108,7 +139,7 @@ export default function App() {
         setVideoData(json.data);
         setActiveSceneIndex(0);
         setIsPlaying(true);
-        setActiveNav('watch');
+        handleSelectNav('watch');
 
         const currentScene = json.data.scenes?.[0];
         if (currentScene) speakNarration(currentScene.narration);
@@ -152,7 +183,7 @@ export default function App() {
 
   const handleNavigateStudio = (topicTitle = '') => {
     setSelectedStudioTopic(topicTitle);
-    setActiveNav('studio');
+    handleSelectNav('studio');
   };
 
   const handleSaveToLibrary = (data) => {
@@ -186,7 +217,7 @@ export default function App() {
       {/* Top Fixed Header */}
       <Header
         activeNav={activeNav}
-        onSelectNav={setActiveNav}
+        onSelectNav={handleSelectNav}
         user={user}
         onOpenAuth={() => setShowAuthModal(true)}
         onOpenSettings={() => setShowKeyModal(true)}
@@ -201,7 +232,7 @@ export default function App() {
         {/* Left Navigation Sidebar */}
         <Sidebar
           activeNav={activeNav}
-          onSelectNav={setActiveNav}
+          onSelectNav={handleSelectNav}
           onSelectDomain={setSelectedDomain}
           selectedDomain={selectedDomain}
           isCollapsed={isSidebarCollapsed}
@@ -210,7 +241,7 @@ export default function App() {
         />
 
         {/* Center Page Content Workspace */}
-        <main className="flex-1 overflow-y-auto p-4 md:p-8 space-y-6">
+        <main className="flex-1 overflow-y-auto p-4 md:p-8 pb-16 min-h-[calc(100vh-3.5rem)] space-y-6">
           {activeNav === 'home' && (
             <HomePage
               onSelectTopic={handleSelectTopicFromHome}

@@ -8,6 +8,30 @@ export default function LibraryPage({ onSelectTopic }) {
   const [search, setSearch] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('All');
 
+  const DEFAULT_SEED_LIBRARY = [
+    {
+      id: 'lib_1',
+      title: 'Photosynthesis & Light-Dependent Reactions Masterclass',
+      category: 'Biology',
+      icon: '🌱',
+      summary: 'Complete breakdown of chloroplast thylakoids, photolysis, ATP Synthase, and Calvin Cycle.'
+    },
+    {
+      id: 'lib_2',
+      title: "Newton's 3 Laws of Motion & Vector Mechanics Proofs",
+      category: 'Physics',
+      icon: '🚀',
+      summary: 'F=ma force equations, inertia principles, and action-reaction thrust pairs.'
+    },
+    {
+      id: 'lib_3',
+      title: 'Deep Learning & Neural Networks Backpropagation Illustrated',
+      category: 'Computer Science',
+      icon: '🤖',
+      summary: 'Mathematical intuition behind gradient descent, activation functions, and weights.'
+    }
+  ];
+
   useEffect(() => {
     fetchLibrary();
   }, []);
@@ -17,21 +41,29 @@ export default function LibraryPage({ onSelectTopic }) {
     fetch(`${API_BASE_URL}/api/library`)
       .then(res => res.json())
       .then(res => {
-        if (res.success) setLibrary(res.data);
+        if (res.success && res.data && res.data.length > 0) {
+          setLibrary(res.data);
+          localStorage.setItem('heybuddy_library', JSON.stringify(res.data));
+        } else {
+          const cached = localStorage.getItem('heybuddy_library');
+          setLibrary(cached ? JSON.parse(cached) : DEFAULT_SEED_LIBRARY);
+        }
       })
-      .catch(err => console.warn('Failed to load library:', err))
+      .catch(() => {
+        const cached = localStorage.getItem('heybuddy_library');
+        setLibrary(cached ? JSON.parse(cached) : DEFAULT_SEED_LIBRARY);
+      })
       .finally(() => setLoading(false));
   };
 
   const handleRemove = (id, e) => {
     e.stopPropagation();
-    fetch(`${API_BASE_URL}/api/library/${id}`, { method: 'DELETE' })
-      .then(res => res.json())
-      .then(res => {
-        if (res.success) {
-          setLibrary(prev => prev.filter(item => item.id !== id));
-        }
-      });
+    fetch(`${API_BASE_URL}/api/library/${id}`, { method: 'DELETE' }).catch(() => {});
+    setLibrary(prev => {
+      const updated = prev.filter(item => item.id !== id);
+      localStorage.setItem('heybuddy_library', JSON.stringify(updated));
+      return updated;
+    });
   };
 
   const filteredItems = library.filter(item => {

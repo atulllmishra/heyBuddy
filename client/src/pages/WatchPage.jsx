@@ -144,14 +144,6 @@ export default function WatchPage({
             isTheaterMode={isTheaterMode}
             setIsTheaterMode={setIsTheaterMode}
           />
-
-          {/* AI Avatar Presenter Stage */}
-          <AIAvatarPresenter
-            currentScene={currentScene}
-            avatarId={currentAvatarId}
-            onAvatarChange={setCurrentAvatarId}
-            isGenerating={isHeyGenGenerating}
-          />
         </div>
 
         {/* Right Column: Interactive Side Tabs */}

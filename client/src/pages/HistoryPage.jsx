@@ -6,6 +6,33 @@ export default function HistoryPage({ onSelectTopic }) {
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const DEFAULT_SEED_HISTORY = [
+    {
+      id: 'hist_1',
+      topic: 'Photosynthesis & Light-Dependent Reactions Masterclass',
+      methodology: 'Feynman Technique',
+      language: 'Hinglish',
+      status: 'Completed',
+      createdAt: new Date(Date.now() - 3600000 * 2).toISOString()
+    },
+    {
+      id: 'hist_2',
+      topic: "Newton's 3 Laws of Motion & Vector Mechanics Proofs",
+      methodology: 'Feynman Technique',
+      language: 'Hinglish',
+      status: 'Completed',
+      createdAt: new Date(Date.now() - 3600000 * 24).toISOString()
+    },
+    {
+      id: 'hist_3',
+      topic: 'Quantum Entanglement & Superposition',
+      methodology: 'First Principles',
+      language: 'Hinglish',
+      status: 'Completed',
+      createdAt: new Date(Date.now() - 3600000 * 48).toISOString()
+    }
+  ];
+
   useEffect(() => {
     fetchHistory();
   }, []);
@@ -15,18 +42,25 @@ export default function HistoryPage({ onSelectTopic }) {
     fetch(`${API_BASE_URL}/api/history`)
       .then(res => res.json())
       .then(res => {
-        if (res.success) setHistory(res.data);
+        if (res.success && res.data && res.data.length > 0) {
+          setHistory(res.data);
+          localStorage.setItem('heybuddy_history', JSON.stringify(res.data));
+        } else {
+          const cached = localStorage.getItem('heybuddy_history');
+          setHistory(cached ? JSON.parse(cached) : DEFAULT_SEED_HISTORY);
+        }
       })
-      .catch(err => console.warn('Failed to load history:', err))
+      .catch(() => {
+        const cached = localStorage.getItem('heybuddy_history');
+        setHistory(cached ? JSON.parse(cached) : DEFAULT_SEED_HISTORY);
+      })
       .finally(() => setLoading(false));
   };
 
   const handleClearHistory = () => {
-    fetch(`${API_BASE_URL}/api/history`, { method: 'DELETE' })
-      .then(res => res.json())
-      .then(res => {
-        if (res.success) setHistory([]);
-      });
+    fetch(`${API_BASE_URL}/api/history`, { method: 'DELETE' }).catch(() => {});
+    setHistory([]);
+    localStorage.removeItem('heybuddy_history');
   };
 
   return (

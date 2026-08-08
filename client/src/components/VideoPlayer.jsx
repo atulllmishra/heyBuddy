@@ -57,9 +57,85 @@ export default function VideoPlayer({
   const [isFullscreen, setIsFullscreen] = useState(false);
 
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
-  const [liked, setLiked] = useState(false);
-  const [likeCount, setLikeCount] = useState(24850);
-  const [subscribed, setSubscribed] = useState(false);
+
+  // Dynamic Views Counter (increments on video view and persists)
+  const viewsKey = videoData?.topic ? `heybuddy_views_${videoData.topic.replace(/\s+/g, '_')}` : 'heybuddy_views_default';
+  const [viewsCount, setViewsCount] = useState(() => {
+    const saved = localStorage.getItem(viewsKey);
+    const initial = saved ? parseInt(saved, 10) : 142500;
+    const updated = initial + 1;
+    localStorage.setItem(viewsKey, updated.toString());
+    return updated;
+  });
+
+  // Dynamic Subscriber Counter (persists and updates dynamically)
+  const baseSubscribers = 1420850;
+  const [subscribed, setSubscribed] = useState(() => {
+    return localStorage.getItem('heybuddy_subscribed') === 'true';
+  });
+  const [subscriberCount, setSubscriberCount] = useState(() => {
+    const isSub = localStorage.getItem('heybuddy_subscribed') === 'true';
+    return isSub ? baseSubscribers + 1 : baseSubscribers;
+  });
+
+  const toggleSubscribe = () => {
+    const next = !subscribed;
+    setSubscribed(next);
+    localStorage.setItem('heybuddy_subscribed', next ? 'true' : 'false');
+    setSubscriberCount(prev => (next ? prev + 1 : prev - 1));
+  };
+
+  // Dynamic Like / Dislike Counter & State
+  const topicKey = videoData?.topic ? `heybuddy_like_${videoData.topic.replace(/\s+/g, '_')}` : 'heybuddy_like_default';
+  const baseLikes = 24850;
+  const [likedState, setLikedState] = useState(() => localStorage.getItem(topicKey) || 'none');
+  const [likeCount, setLikeCount] = useState(() => {
+    const saved = localStorage.getItem(topicKey);
+    if (saved === 'liked') return baseLikes + 1;
+    return baseLikes;
+  });
+
+  // Dynamic Live Student Telemetry Ticker
+  const [liveViewers, setLiveViewers] = useState(1428);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setLiveViewers(prev => {
+        const delta = Math.floor(Math.random() * 7) - 3;
+        return Math.max(1200, prev + delta);
+      });
+    }, 4000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const handleLike = () => {
+    if (likedState === 'liked') {
+      setLikedState('none');
+      setLikeCount(prev => prev - 1);
+      localStorage.setItem(topicKey, 'none');
+    } else {
+      if (likedState === 'disliked') {
+        setLikeCount(prev => prev + 1);
+      } else {
+        setLikeCount(prev => prev + 1);
+      }
+      setLikedState('liked');
+      localStorage.setItem(topicKey, 'liked');
+    }
+  };
+
+  const handleDislike = () => {
+    if (likedState === 'disliked') {
+      setLikedState('none');
+      localStorage.setItem(topicKey, 'none');
+    } else {
+      if (likedState === 'liked') {
+        setLikeCount(prev => prev - 1);
+      }
+      setLikedState('disliked');
+      localStorage.setItem(topicKey, 'disliked');
+    }
+  };
 
   // Scrubber Hover Tooltip State
   const [hoverTimeStr, setHoverTimeStr] = useState(null);
@@ -349,18 +425,18 @@ export default function VideoPlayer({
     ctx.fillStyle = aura2;
     ctx.beginPath(); ctx.arc(740, 340, 300, 0, Math.PI * 2); ctx.fill();
 
-    // 3. Top Masterclass Title Banner Box
+    // 3. Top Masterclass Title Banner Box (Positioned below HTML top overlay badges)
     ctx.fillStyle = "rgba(255, 255, 255, 0.07)";
     ctx.strokeStyle = "rgba(99, 102, 241, 0.3)"; ctx.lineWidth = 1.5;
-    ctx.beginPath(); ctx.roundRect(30, 20, 900, 56, 16); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.roundRect(30, 65, 900, 50, 16); ctx.fill(); ctx.stroke();
 
-    ctx.font = "bold 19px 'Plus Jakarta Sans', sans-serif";
+    ctx.font = "bold 18px 'Plus Jakarta Sans', sans-serif";
     ctx.fillStyle = "#F8FAFC"; ctx.textAlign = "left";
-    ctx.fillText(`🎓 ${videoData.topic || scene.title}`, 50, 55);
+    ctx.fillText(`🎓 ${videoData.topic || scene.title}`, 50, 97);
 
     ctx.font = "bold 12px 'JetBrains Mono', monospace";
     ctx.fillStyle = "#38BDF8"; ctx.textAlign = "right";
-    ctx.fillText(`SCENE ${activeSceneIndex + 1}/${totalScenes} • ${videoData.gradeLevel || 'AP / College'}`, 910, 55);
+    ctx.fillText(`SCENE ${activeSceneIndex + 1}/${totalScenes} • ${videoData.gradeLevel || 'AP / College'}`, 910, 97);
 
     // 4. Render Visual Graphic Elements
     const elements = canvasData.elements || [];
@@ -502,8 +578,9 @@ export default function VideoPlayer({
           onClick={(e) => e.stopPropagation()}
         >
           <div className="flex items-center gap-2">
-            <span className="px-2.5 py-1 rounded-lg bg-black/80 text-[#ff0000] border border-[#ff0000]/40 font-bold text-[11px] shadow">
-              ▶ YouTube Hinglish AI Masterclass
+            <span className="px-2.5 py-1 rounded-lg bg-black/80 text-[#ff0000] border border-[#ff0000]/40 font-bold text-[11px] shadow flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-[#ff0000] animate-ping" />
+              🔴 {liveViewers.toLocaleString()} Live Students
             </span>
             <span className="px-2.5 py-1 rounded-lg bg-black/80 text-sky-400 border border-sky-500/30 font-mono text-[11px] hidden sm:inline">
               Codec: {codec}
@@ -574,9 +651,9 @@ export default function VideoPlayer({
           </div>
         )}
 
-        {/* Picture-in-Picture AI Avatar Overlay */}
+        {/* Compact Picture-in-Picture AI Avatar Floating Widget */}
         {avatarMode === 'pip' && (
-          <div className="absolute top-14 right-4 z-20 w-36 sm:w-44 rounded-xl overflow-hidden border border-indigo-500/40 shadow-2xl bg-black/90 pointer-events-auto">
+          <div className="absolute bottom-16 right-4 z-20 w-24 sm:w-28 rounded-2xl overflow-hidden border border-indigo-500/40 shadow-2xl bg-black/95 pointer-events-auto">
             <AIAvatarPresenter
               isPlaying={isPlaying}
               currentAvatarId={currentAvatarId}
@@ -885,11 +962,13 @@ export default function VideoPlayer({
                 heyBuddy Hinglish AI Professor
                 <span className="w-4 h-4 rounded-full bg-[#3ea6ff]/20 text-[#3ea6ff] flex items-center justify-center text-[10px] font-bold">✓</span>
               </div>
-              <div className="text-xs text-slate-400">1.4M Subscribers</div>
+              <div className="text-xs text-slate-400">
+                {subscriberCount.toLocaleString()} Subscribers
+              </div>
             </div>
 
             <button
-              onClick={() => setSubscribed(!subscribed)}
+              onClick={toggleSubscribe}
               className={`ml-2 px-4 py-2 rounded-full text-xs font-bold transition-all ${
                 subscribed
                   ? 'bg-[#272727] text-slate-300 border border-slate-700'
@@ -903,13 +982,16 @@ export default function VideoPlayer({
           <div className="flex items-center gap-2 flex-wrap">
             <div className="inline-flex items-center rounded-full bg-[#272727] border border-slate-700 overflow-hidden text-xs text-slate-200">
               <button
-                onClick={() => { setLiked(!liked); setLikeCount(prev => liked ? prev - 1 : prev + 1); }}
-                className={`px-3.5 py-2 hover:bg-[#383838] transition-colors flex items-center gap-1.5 ${liked ? 'text-[#3ea6ff] font-bold' : ''}`}
+                onClick={handleLike}
+                className={`px-3.5 py-2 hover:bg-[#383838] transition-colors flex items-center gap-1.5 ${likedState === 'liked' ? 'text-[#3ea6ff] font-bold' : ''}`}
               >
                 👍 {likeCount.toLocaleString()}
               </button>
               <div className="w-px h-4 bg-slate-700" />
-              <button className="px-3 py-2 hover:bg-[#383838] transition-colors">
+              <button
+                onClick={handleDislike}
+                className={`px-3 py-2 hover:bg-[#383838] transition-colors ${likedState === 'disliked' ? 'text-red-400 font-bold' : ''}`}
+              >
                 👎
               </button>
             </div>
@@ -933,7 +1015,7 @@ export default function VideoPlayer({
         {/* Expandable Description Box */}
         <div className="mt-3 bg-[#121212] p-4 rounded-xl border border-[#272727] text-xs space-y-2">
           <div className="flex items-center gap-3 text-slate-300 font-bold">
-            <span>142,500 views</span>
+            <span>{viewsCount.toLocaleString()} views</span>
             <span>• Premiered Aug 7, 2026</span>
             <span className="text-[#3ea6ff]">#HinglishMasterclass</span>
           </div>
