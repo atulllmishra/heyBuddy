@@ -118,6 +118,15 @@ body {
   animation: ytPulse 2s infinite ease-in-out;
 }
 
+@keyframes spinSlow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.animate-spin-slow {
+  animation: spinSlow 8s linear infinite;
+}
+
 /* Mobile Touch Active Feedback */
 button:active, a:active {
   transform: scale(0.98);

@@ -1,6 +1,7 @@
 import React from 'react';
 import {
   Home,
+  Scan,
   Video,
   Bookmark,
   History,
@@ -27,6 +28,7 @@ export default function Sidebar({
 }) {
   const mainNavItems = [
     { id: 'home', label: 'Home', icon: Home },
+    { id: 'syllabus', label: 'Syllabus Scanner', icon: Scan },
     { id: 'studio', label: 'Studio Generator', icon: Video },
   ];
 

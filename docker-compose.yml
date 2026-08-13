@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: heybuddy_postgres
+    environment:
+      POSTGRES_DB: heybuddy_db
+      POSTGRES_USER: heybuddy
+      POSTGRES_PASSWORD: heybuddy_pass
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    container_name: heybuddy_redis
+    ports:
+      - "6379:6379"
+
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: heybuddy_fastapi
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://heybuddy:heybuddy_pass@postgres:5432/heybuddy_db
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      - postgres
+      - redis
+
+  celery_worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: heybuddy_celery
+    command: celery -A app.tasks.celery_tasks.celery_app worker --loglevel=info
+    environment:
+      - DATABASE_URL=postgresql://heybuddy:heybuddy_pass@postgres:5432/heybuddy_db
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      - redis
+
+volumes:
+  pgdata:
