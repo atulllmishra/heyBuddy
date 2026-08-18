@@ -129,7 +129,7 @@ export default function Studio({ onGenerate, loading }) {
           </div>
 
           {/* Integrated Academic Sources Indicator */}
-          <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', display: 'flex', gap: '10px', opacity: 0.9, flexWrap: 'wrap', justifyContent: 'center' }}>
+          <div style={{ fontSize: '0.72rem', color: 'var(--text-white)', display: 'flex', gap: '10px', opacity: 0.9, flexWrap: 'wrap', justifyContent: 'center' }}>
             <span><i className="fa-solid fa-book-open-reader" style={{ color: '#38bdf8' }}></i> OpenStax (Rice)</span>
             <span><i className="fa-solid fa-landmark" style={{ color: '#6366f1' }}></i> Project Gutenberg & Archive</span>
             <span><i className="fa-solid fa-graduation-cap" style={{ color: '#10b981' }}></i> LibreTexts OER</span>
