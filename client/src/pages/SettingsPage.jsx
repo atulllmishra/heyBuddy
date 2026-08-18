@@ -4,12 +4,12 @@ import { API_BASE_URL } from '../config';
 
 export default function SettingsPage() {
   const [profile, setProfile] = useState({
-    name: 'Alex Rivera',
-    email: 'alex@heybuddy.edu',
-    role: 'Student / Researcher',
-    gradeLevel: 'High School / AP',
-    targetStream: 'STEM / Physical Sciences',
-    learningGoal: 'Master Calculus & Quantum Physics before Semester Finals'
+    name: '',
+    email: '',
+    role: '',
+    gradeLevel: '',
+    targetStream: '',
+    learningGoal: ''
   });
   const [geminiKey, setGeminiKey] = useState(localStorage.getItem('heybuddy_gemini_key') || '');
   const [openaiKey, setOpenaiKey] = useState(localStorage.getItem('heybuddy_openai_key') || '');
@@ -73,7 +73,7 @@ export default function SettingsPage() {
                 type="text"
                 value={profile.name}
                 onChange={(e) => setProfile({ ...profile, name: e.target.value })}
-                className="w-full px-4 py-2.5 rounded-xl glass-input text-white text-sm"
+                className="w-full px-4 py-2.5 text-black rounded-xl glass-input  text-sm"
               />
             </div>
 
@@ -85,7 +85,7 @@ export default function SettingsPage() {
                 type="email"
                 value={profile.email}
                 onChange={(e) => setProfile({ ...profile, email: e.target.value })}
-                className="w-full px-4 py-2.5 rounded-xl glass-input text-white text-sm"
+                className="w-full px-4 py-2.5 rounded-xl glass-input text-black text-sm"
               />
             </div>
           </div>
@@ -98,7 +98,7 @@ export default function SettingsPage() {
               type="text"
               value={profile.learningGoal}
               onChange={(e) => setProfile({ ...profile, learningGoal: e.target.value })}
-              className="w-full px-4 py-2.5 rounded-xl glass-input text-white text-sm"
+              className="w-full px-4 py-2.5 rounded-xl glass-input text-black text-sm"
             />
           </div>
         </div>

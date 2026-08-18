@@ -15,12 +15,36 @@
     "photosynthesis_&_light_reactions_(complete_masterclass)",
     {
       "videoId": "photosynthesis_&_light_reactions_(complete_masterclass)",
+      "auditedViews": 4,
+      "auditedLikes": 0,
+      "auditedDislikes": 0,
+      "subscribers": 0,
+      "liveStudents": 0,
+      "lastFlushedAt": "2026-08-18T05:08:55.690Z"
+    }
+  ],
+  [
+    "photodiode",
+    {
+      "videoId": "photodiode",
+      "auditedViews": 1,
+      "auditedLikes": 0,
+      "auditedDislikes": 0,
+      "subscribers": 0,
+      "liveStudents": 0,
+      "lastFlushedAt": "2026-08-18T05:09:40.696Z"
+    }
+  ],
+  [
+    "database_management_system",
+    {
+      "videoId": "database_management_system",
       "auditedViews": 2,
       "auditedLikes": 0,
       "auditedDislikes": 0,
       "subscribers": 0,
       "liveStudents": 0,
-      "lastFlushedAt": "2026-08-08T06:06:29.599Z"
+      "lastFlushedAt": "2026-08-18T05:17:25.780Z"
     }
   ]
 ]
